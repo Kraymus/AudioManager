@@ -145,8 +145,7 @@ public class AudioManager : MonoBehaviour
             }
             else // AudioType.Segment
             {
-                //audioSegment = GetAudioSegment(audioName);
-                Debug.Log("Audio Segment not implemented");
+                audioSegment = GetAudioSegment(audioName);
             }
         }
 

@@ -375,28 +375,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e835032e0d889674d927e2731be4b81e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 963194228}
-  masterVolume: 0.378
+  playerTransform: {fileID: 0}
+  masterVolume: 1
   audioGroups:
   - name: Audio Group 1
     volume: 1
     segments:
     - audioSegment:
-        audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+        audioClip: {fileID: 8300000, guid: 6b1cd5f420fe0374098672d7dd2cf4ac, type: 3}
+        volume: 1
+        pitch: 1
+        randomVolume: 0
+        randomPitch: 0
+      weight: 16
+    - audioSegment:
+        audioClip: {fileID: 8300000, guid: c88b0e45ddb493e4a8a2df088c557b5f, type: 3}
+        volume: 1
+        pitch: 1
+        randomVolume: 0
+        randomPitch: 0
+      weight: 1
+    type: 0
+    resetTime: 0
+    currentSequence: 0
+  - name: Audio Group 2
+    volume: 1
+    segments:
+    - audioSegment:
+        audioClip: {fileID: 8300000, guid: 7a054a2dc7128f54694d8972aa9633aa, type: 3}
         volume: 1
         pitch: 1
         randomVolume: 0
         randomPitch: 0
       weight: 1
     - audioSegment:
-        audioClip: {fileID: 8300000, guid: dd32bcc488348da489d3ede08951c046, type: 3}
-        volume: 0.294
+        audioClip: {fileID: 8300000, guid: 45f458bf5b837ec459bc125f9dedc3af, type: 3}
+        volume: 1
         pitch: 1
         randomVolume: 0
         randomPitch: 0
       weight: 1
     - audioSegment:
-        audioClip: {fileID: 8300000, guid: 2609d4b6b3ad7bc488117ec2662ba4af, type: 3}
+        audioClip: {fileID: 8300000, guid: 5bf697b223b07c947a6976d545e50abc, type: 3}
         volume: 1
         pitch: 1
         randomVolume: 0
@@ -405,29 +425,7 @@ MonoBehaviour:
     type: 1
     resetTime: 0
     currentSequence: 2
-  - name: Audio Group 2
-    volume: 1
-    segments:
-    - audioSegment:
-        audioClip: {fileID: 8300000, guid: ecfd79e1d777dca40a5630b3f801fadc, type: 3}
-        volume: 1
-        pitch: 1
-        randomVolume: 0
-        randomPitch: 0
-      weight: 6
-    - audioSegment:
-        audioClip: {fileID: 8300000, guid: d0d538e20920afe4896bd1db0ec1427c, type: 3}
-        volume: 0.294
-        pitch: 1
-        randomVolume: 0
-        randomPitch: 0
-      weight: 1
-    type: 0
-    resetTime: 0
-    currentSequence: 2
-  audioSegments:
-  - {fileID: 0}
-  - {fileID: 0}
+  audioSegments: []
 --- !u!4 &1816324814
 Transform:
   m_ObjectHideFlags: 0
@@ -453,10 +451,10 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+  m_audioClip: {fileID: 8300000, guid: de27d3c78a0686047abd37dcd328eff7, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
+  m_Volume: 0.542
+  m_Pitch: 0.93
   Loop: 0
   Mute: 0
   Spatialize: 0
