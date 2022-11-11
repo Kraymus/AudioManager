@@ -20,7 +20,7 @@ public class AudioGroup
     [SerializeField]
     private AudioGroupType type;
     [SerializeField]
-    private int resetTime;
+    private float resetTime;
     [SerializeField]
     private int currentSequence = 0;
 
@@ -39,7 +39,7 @@ public class AudioGroup
         return type;
     }
 
-    public int GetResetTime()
+    public float GetResetTime()
     {
         return resetTime;
     }
