@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class AudioGroupSegment
+public class NamedAudioSegment
 {
+    [SerializeField] private string audioName;
     [SerializeField] private AudioSegment audioSegment;
-    [Range(1, 100)]
-    [SerializeField] private int weight = 1;
 
     public AudioClip GetAudioClip()
     {
@@ -34,9 +33,9 @@ public class AudioGroupSegment
         return audioSegment.GetRandomPitch();
     }
 
-    public int GetWeight()
+    public string GetName()
     {
-        return weight;
+        return audioName;
     }
 
     public AudioSegment GetAudioSegment()

@@ -15,11 +15,11 @@ public class AudioManagerTester : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            AudioManager.Instance.Play("Audio Group 1");
+            AudioManager.Instance.Play(AudioType.Group, "Audio Group 1");
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            AudioManager.Instance.Play("Audio Group 2", Vector3.zero);
+            AudioManager.Instance.Play(AudioType.Group, "Audio Group 2", Vector3.zero);
         }
     }
 }

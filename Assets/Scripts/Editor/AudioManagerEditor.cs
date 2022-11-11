@@ -43,23 +43,33 @@ public class AudioManagerEditor : Editor
         toggle.RegisterValueChangedCallback(OnToggleChanged);
         mainPageElement.Add(toggle);
 
-        Button addButton = new Button(() =>
+        Button addAudioGroupButton = new Button(() =>
         {
             audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
             audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
             audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
             serializedObject.ApplyModifiedProperties();
         });
-        addButton.text = "Add";
-        mainPageElement.Add(addButton);
+        addAudioGroupButton.text = "Add";
+        mainPageElement.Add(addAudioGroupButton);
 
-        ListView audioGroupListView = MakeAudioGroupListView(audioGroupsProperty);
-        mainPageElement.Add(audioGroupListView);
+        ListView audioGroupsListView = MakeAudioGroupListView(audioGroupsProperty);
+        mainPageElement.Add(audioGroupsListView);
 
         SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
-        PropertyField audioSegmentsField = new PropertyField();
-        audioSegmentsField.BindProperty(audioSegmentsProperty);
-        mainPageElement.Add(audioSegmentsField);
+        Button addAudioSegmentButton = new Button(() =>
+        {
+            audioSegmentsProperty.InsertArrayElementAtIndex(audioSegmentsProperty.arraySize);
+            // Set default values
+            //audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
+            //audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
+            serializedObject.ApplyModifiedProperties();
+        });
+        addAudioSegmentButton.text = "Add";
+        mainPageElement.Add(addAudioSegmentButton);
+
+        ListView audioSegmentsListView = MakeAudioSegmentListView(audioSegmentsProperty);
+        mainPageElement.Add(audioSegmentsListView);
 
         return mainPageElement;
     }
@@ -87,7 +97,7 @@ public class AudioManagerEditor : Editor
 
             Button playButton = new Button(() =>
             {
-                AudioManager.Instance.PlayInEditor(audioGroupsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
+                AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroupsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
             });
             playButton.text = "Play";
             playButton.style.flexGrow = 1;
@@ -129,31 +139,27 @@ public class AudioManagerEditor : Editor
         return SetListViewSettings(makeItem, bindItem, "Audio Groups", 50, bindingPath: audioGroupsProperty.propertyPath);
     }
 
-    private ListView MakeAudioSegmentListView()
+    private ListView MakeAudioSegmentListView(SerializedProperty audioSegmentsProperty)
     {
         Func<VisualElement> makeItem = () =>
         {
             VisualElement element = new VisualElement();
 
-            PropertyField propertyField = new PropertyField();
-            element.Add(propertyField);
+            element.Add(new PropertyField());
 
             Button playButton = new Button(() =>
             {
-                SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-                SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
-                SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex((int)element.userData);
-                float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
-                AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
+                AudioManager.Instance.PlayInEditor(AudioType.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("audioName").stringValue);
+                //SerializedProperty segmentProperty = audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData);
+                //float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
+                //AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
             });
             playButton.text = "Play";
             element.Add(playButton);
 
             Button deleteButton = new Button(() =>
             {
-                SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-                SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
-                segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
                 serializedObject.ApplyModifiedProperties();
             });
             deleteButton.text = "Delete";
@@ -164,13 +170,11 @@ public class AudioManagerEditor : Editor
 
         Action<VisualElement, int> bindItem = (element, index) =>
         {
-            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-            SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
             element.userData = index;
-            (element.ElementAt(0) as PropertyField).BindProperty(segmentsProperty.GetArrayElementAtIndex(index));
+            (element.ElementAt(0) as PropertyField).BindProperty(audioSegmentsProperty.GetArrayElementAtIndex(index));
         };
 
-        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400);
+        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400, audioSegmentsProperty.propertyPath);
     }
 
     private static ListView SetListViewSettings(Func<VisualElement> makeItem, Action<VisualElement, int> bindItem, string title, int fixedItemHeight, int width = 0, string bindingPath = "")
@@ -226,7 +230,7 @@ public class AudioManagerEditor : Editor
         Button playButton = new Button(() =>
         {
             SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-            AudioManager.Instance.PlayInEditor(audioGroup.FindPropertyRelative("name").stringValue);
+            AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroup.FindPropertyRelative("name").stringValue);
         });
         playButton.text = "Play";
         subPageElement.Add(playButton);
@@ -236,10 +240,11 @@ public class AudioManagerEditor : Editor
             SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
             SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
             segmentsProperty.InsertArrayElementAtIndex(segmentsProperty.arraySize);
-            SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
+            SerializedProperty groupSegmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
+            SerializedProperty segmentProperty = groupSegmentProperty.FindPropertyRelative("audioSegment");
             segmentProperty.FindPropertyRelative("volume").floatValue = 1f;
             segmentProperty.FindPropertyRelative("pitch").floatValue = 1f;
-            segmentProperty.FindPropertyRelative("weight").intValue = 1;
+            groupSegmentProperty.FindPropertyRelative("weight").intValue = 1;
             serializedObject.ApplyModifiedProperties();
         });
         addButton.text = "Add";
@@ -266,7 +271,7 @@ public class AudioManagerEditor : Editor
                 SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
                 SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex((int)element.userData);
                 float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
-                AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
+                AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
             });
             playButton.text = "Play";
             element.Add(playButton);
@@ -295,14 +300,6 @@ public class AudioManagerEditor : Editor
 
         return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400);
     }
-
-    //private void TypeChanged(SerializedPropertyChangeEvent evt)
-    //{
-    //    if (evt.changedProperty.intValue == 0)
-    //        resetTimeElement.style.display = DisplayStyle.None;
-    //    else
-    //        resetTimeElement.style.display = DisplayStyle.Flex;
-    //}
 
     private void GoToSubPage(int index)
     {

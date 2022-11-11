@@ -425,6 +425,9 @@ MonoBehaviour:
     type: 0
     resetTime: 0
     currentSequence: 2
+  audioSegments:
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &1816324814
 Transform:
   m_ObjectHideFlags: 0
@@ -450,7 +453,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: ecfd79e1d777dca40a5630b3f801fadc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
