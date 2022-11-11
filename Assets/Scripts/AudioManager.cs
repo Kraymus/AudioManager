@@ -4,6 +4,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
 
+public enum AudioType
+{
+    Segment,
+    Group,
+    Music
+}
+
 [ExecuteInEditMode]
 public class AudioManager : MonoBehaviour
 {
@@ -13,11 +20,14 @@ public class AudioManager : MonoBehaviour
     private float masterVolume = 1f;
     [SerializeField]
     private List<AudioGroup> audioGroups;
+    [SerializeField]
+    private List<NamedAudioSegment> audioSegments;
 
 #if UNITY_EDITOR
     private AudioSource editorAudioSource;
 #endif
     private Dictionary<string, AudioGroup> audioGroupDict = new Dictionary<string, AudioGroup>();
+    private Dictionary<string, NamedAudioSegment> audioSegmentDict = new Dictionary<string, NamedAudioSegment>();
     private ObjectPool<GameObject> audioPoolPlayer = new ObjectPool<GameObject>(OnCreatePlayerAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
     private ObjectPool<GameObject> audioPoolPositional = new ObjectPool<GameObject>(OnCreatePositionalAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
 
@@ -39,7 +49,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        BuildAudioGroupDict();
+        BuildAudioDicts();
     }
 
     private void Update()
@@ -89,77 +99,90 @@ public class AudioManager : MonoBehaviour
         editorAudioSource.playOnAwake = false;
     }
 
-    public void PlayInEditor(string audioGroupName)
+    public void PlayInEditor(AudioType audioType, string audioName, int audioGroupSegmentIndex = -1)
     {
         if (!Application.isPlaying)
-            BuildAudioGroupDict();
+            BuildAudioDicts();
 
+        AudioSegment audioSegment = null;
+        float volumeModifier = 1f;
         InitializeEditorAudioSource();
-        PlayFromSource(audioGroupName, editorAudioSource);
-    }
+        if (audioType == AudioType.Group)
+            (audioSegment, volumeModifier) = GetAudioGroupSegment(audioName, audioGroupSegmentIndex);
+        else if (audioType == AudioType.Segment)
+            audioSegment = GetAudioSegment(audioName);
 
-    public void PlayAudioGroupSegmentInEditor(string audioGroupName, int audioGroupSegmentIndex)
-    {
-        if (!Application.isPlaying)
-            BuildAudioGroupDict();
 
-        AudioGroup audioGroup = audioGroupDict[audioGroupName];
-        InitializeEditorAudioSource();
-        PlayAudioGroupSegment(audioGroup.GetSegments()[audioGroupSegmentIndex], audioGroup.GetVolume(), editorAudioSource);
+        if (audioSegment != null)
+            PlayAudioSegment(audioSegment, volumeModifier, editorAudioSource);
     }
 #endif
 
-    public void Play(string audioGroupName)
+    public void Play(AudioType audioType, string audioName)
     {
-        GameObject audioObject = audioPoolPlayer.Get();
-        audioObject.transform.position = playerTransform.position;
-        audioObject.transform.parent = playerTransform;
-        AudioClip clip = PlayFromSource(audioGroupName, audioObject.GetComponent<AudioSource>());
-        if (clip == null)
+
+        Play(audioType, audioName, playerTransform.position, playerTransform, audioPoolPlayer, audioTimerPlayer);
+    }
+
+    public void Play(AudioType audioType, string audioName, Vector3 position)
+    {
+        Play(audioType, audioName, position, transform, audioPoolPositional, audioTimerPositional);
+    }
+
+    private void Play(AudioType audioType, string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, Dictionary<GameObject, float> timer)
+    {
+        AudioSegment audioSegment = null;
+        float volumeModifier = 1f;
+        if (audioType == AudioType.Music)
         {
-            audioPoolPlayer.Release(audioObject);
+            Debug.LogWarning("Music not implemented");
         }
         else
         {
-            audioTimerPlayer.Add(audioObject, clip.length);
+            if (audioType == AudioType.Group)
+            {
+                (audioSegment, volumeModifier) = GetAudioGroupSegment(audioName);
+            }
+            else // AudioType.Segment
+            {
+                audioSegment = GetAudioSegment(audioName);
+            }
+        }
+
+        if (audioSegment != null)
+        {
+            GameObject audioObject = pool.Get();
+            audioObject.transform.position = position;
+            audioObject.transform.parent = parent;
+            PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
+            timer.Add(audioObject, audioSegment.GetAudioClip().length);
         }
     }
 
-    public void Play(string audioGroupName, Vector3 position)
+    // index is specifically for the editor, so that it can choose the segment to play
+    private (AudioSegment, float) GetAudioGroupSegment(string audioName, int index = -1)
     {
-        GameObject audioObject = audioPoolPositional.Get();
-        audioObject.transform.position = position;
-        audioObject.transform.parent = transform;
-        AudioClip clip = PlayFromSource(audioGroupName, audioObject.GetComponent<AudioSource>());
-        if (clip == null)
-        {
-            audioPoolPositional.Release(audioObject);
-        }
-        else
-        {
-            audioTimerPositional.Add(audioObject, clip.length);
-        }
-    }
-
-    private AudioClip PlayFromSource(string audioGroupName, AudioSource audioSource)
-    {
-        AudioGroup audioGroup = audioGroupDict[audioGroupName];
+        AudioGroup audioGroup = audioGroupDict[audioName];
         if (audioGroup == null)
         {
-            Debug.LogWarning("No Audio Group with the name: " + audioGroupName);
-            return null;
+            Debug.LogWarning("No Audio Group with the name: " + audioName);
+            return (null, 0f);
         }
 
         List<AudioGroupSegment> audioGroupSegments = audioGroup.GetSegments();
         if (audioGroupSegments.Count == 0)
         {
             Debug.LogWarning("Audio Group Has no segments to play");
-            return null;
+            return (null, 0f);
         }
 
         float audioGroupVolume = audioGroup.GetVolume();
         AudioGroupType audioGroupType = audioGroup.GetAudioGroupType();
 
+        if (index != -1)
+        {
+            return (audioGroupSegments[index].GetAudioSegment(), audioGroupVolume);
+        }
         if (audioGroupType == AudioGroupType.Random)
         {
             // Calculate the total weight of all the segments
@@ -183,23 +206,28 @@ public class AudioManager : MonoBehaviour
                 }
             }
 
-            return PlayAudioGroupSegment(audioGroupSegments[weightedRandomIndex], audioGroupVolume, audioSource);
+            return (audioGroupSegments[weightedRandomIndex].GetAudioSegment(), audioGroupVolume);
         }
         else // Sequence
         {
-            int audioGroupResetTime = audioGroup.GetResetTime();
-            return PlayAudioGroupSegment(audioGroup.SequenceStep(), audioGroup.GetVolume(), audioSource);
+            //int audioGroupResetTime = audioGroup.GetResetTime();
+            return (audioGroup.SequenceStep().GetAudioSegment(), audioGroup.GetVolume());
         }
     }
 
-    private AudioClip PlayAudioGroupSegment(AudioGroupSegment audioGroupSegment, float audioGroupVolume, AudioSource audioSource)
+    private AudioSegment GetAudioSegment(string audioName)
     {
-        audioSource.clip = audioGroupSegment.GetAudioClip();
-        float volume = audioGroupSegment.GetVolume();
-        float pitch = audioGroupSegment.GetPitch();
-        float randomVolume = audioGroupSegment.GetRandomVolume();
-        float randomPitch = audioGroupSegment.GetRandomPitch();
-        float finalVolume = Random.Range(volume - randomVolume, volume + randomVolume) * audioGroupVolume;
+        return audioSegmentDict[audioName].GetAudioSegment();
+    }
+
+    private AudioClip PlayAudioSegment(AudioSegment audioSegment, float volumeModifier, AudioSource audioSource)
+    {
+        audioSource.clip = audioSegment.GetAudioClip();
+        float volume = audioSegment.GetVolume();
+        float pitch = audioSegment.GetPitch();
+        float randomVolume = audioSegment.GetRandomVolume();
+        float randomPitch = audioSegment.GetRandomPitch();
+        float finalVolume = Random.Range(volume - randomVolume, volume + randomVolume) * volumeModifier;
         float finalPitch = Random.Range(pitch - randomPitch, pitch + randomPitch);
         audioSource.volume = finalVolume;
         audioSource.pitch = finalPitch;
@@ -207,11 +235,15 @@ public class AudioManager : MonoBehaviour
         return audioSource.clip;
     }
 
-    private void BuildAudioGroupDict()
+    private void BuildAudioDicts()
     {
         audioGroupDict.Clear();
         foreach (AudioGroup audioGroup in audioGroups)
             audioGroupDict.Add(audioGroup.GetName(), audioGroup);
+
+        audioSegmentDict.Clear();
+        foreach (NamedAudioSegment audioSegment in audioSegments)
+            audioSegmentDict.Add(audioSegment.GetName(), audioSegment);
     }
 
     #region PoolFunctions

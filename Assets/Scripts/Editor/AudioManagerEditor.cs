@@ -34,6 +34,49 @@ public class AudioManagerEditor : Editor
 
         SerializedProperty audioGroupsProperty = serializedObject.FindProperty("audioGroups");
 
+        SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
+        PropertyField playerTransformField = new PropertyField();
+        playerTransformField.BindProperty(playerTransformProperty);
+        mainPageElement.Add(playerTransformField);
+
+        Toggle toggle = new Toggle("Enable Deleting");
+        toggle.RegisterValueChangedCallback(OnToggleChanged);
+        mainPageElement.Add(toggle);
+
+        Button addAudioGroupButton = new Button(() =>
+        {
+            audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
+            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultAudioGroupName(audioGroupsProperty);
+            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
+            serializedObject.ApplyModifiedProperties();
+        });
+        addAudioGroupButton.text = "Add";
+        mainPageElement.Add(addAudioGroupButton);
+
+        ListView audioGroupsListView = MakeAudioGroupListView(audioGroupsProperty);
+        mainPageElement.Add(audioGroupsListView);
+
+        SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
+        Button addAudioSegmentButton = new Button(() =>
+        {
+            audioSegmentsProperty.InsertArrayElementAtIndex(audioSegmentsProperty.arraySize);
+            // Set default values
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioName").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty);
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("volume").floatValue = 1f;
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("pitch").floatValue = 1f;
+            serializedObject.ApplyModifiedProperties();
+        });
+        addAudioSegmentButton.text = "Add";
+        mainPageElement.Add(addAudioSegmentButton);
+
+        ListView audioSegmentsListView = MakeAudioSegmentListView(audioSegmentsProperty);
+        mainPageElement.Add(audioSegmentsListView);
+
+        return mainPageElement;
+    }
+
+    private ListView MakeAudioGroupListView(SerializedProperty audioGroupsProperty)
+    {
         Func<VisualElement> makeItem = () =>
         {
             VisualElement element = new VisualElement();
@@ -55,7 +98,7 @@ public class AudioManagerEditor : Editor
 
             Button playButton = new Button(() =>
             {
-                AudioManager.Instance.PlayInEditor(audioGroupsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
+                AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroupsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
             });
             playButton.text = "Play";
             playButton.style.flexGrow = 1;
@@ -94,14 +137,57 @@ public class AudioManagerEditor : Editor
             (element.ElementAt(0).ElementAt(1) as PropertyField).BindProperty(audioGroupsProperty.GetArrayElementAtIndex(index).FindPropertyRelative("volume"));
         };
 
+        return SetListViewSettings(makeItem, bindItem, "Audio Groups", 50, bindingPath: audioGroupsProperty.propertyPath);
+    }
+
+    private ListView MakeAudioSegmentListView(SerializedProperty audioSegmentsProperty)
+    {
+        Func<VisualElement> makeItem = () =>
+        {
+            VisualElement element = new VisualElement();
+
+            element.Add(new PropertyField());
+
+            Button playButton = new Button(() =>
+            {
+                AudioManager.Instance.PlayInEditor(AudioType.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("audioName").stringValue);
+            });
+            playButton.text = "Play";
+            element.Add(playButton);
+
+            Button deleteButton = new Button(() =>
+            {
+                audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                serializedObject.ApplyModifiedProperties();
+            });
+            deleteButton.text = "Delete";
+            element.Add(deleteButton);
+
+            return element;
+        };
+
+        Action<VisualElement, int> bindItem = (element, index) =>
+        {
+            element.userData = index;
+            (element.ElementAt(0) as PropertyField).BindProperty(audioSegmentsProperty.GetArrayElementAtIndex(index));
+        };
+
+        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400, audioSegmentsProperty.propertyPath);
+    }
+
+    private static ListView SetListViewSettings(Func<VisualElement> makeItem, Action<VisualElement, int> bindItem, string title, int fixedItemHeight, int width = 0, string bindingPath = "")
+    {
         var listView = new ListView();
-        listView.bindingPath = audioGroupsProperty.propertyPath;
+        if (bindingPath != "")
+            listView.bindingPath = bindingPath;
         listView.makeItem = makeItem;
         listView.bindItem = bindItem;
         listView.showFoldoutHeader = true;
         listView.showBoundCollectionSize = false;
-        listView.headerTitle = "Audio Groups";
-        listView.fixedItemHeight = 50;
+        listView.headerTitle = title; //listView.headerTitle = "Segments";
+        listView.fixedItemHeight = fixedItemHeight; //listView.fixedItemHeight = 170;
+        if (width != 0)
+            listView.style.width = width; //listView.style.width = 400; // Not on all
 
         listView.style.flexGrow = 1.0f;
         listView.reorderable = true;
@@ -109,28 +195,7 @@ public class AudioManagerEditor : Editor
         listView.showBorder = true;
         listView.showAlternatingRowBackgrounds = AlternatingRowBackground.All;
 
-        SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
-        PropertyField playerTransformField = new PropertyField();
-        playerTransformField.BindProperty(playerTransformProperty);
-        mainPageElement.Add(playerTransformField);
-
-        Toggle toggle = new Toggle("Enable Deleting");
-        toggle.RegisterValueChangedCallback(OnToggleChanged);
-        mainPageElement.Add(toggle);
-
-        Button addButton = new Button(() =>
-        {
-            audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
-            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
-            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
-            serializedObject.ApplyModifiedProperties();
-        });
-        addButton.text = "Add";
-        mainPageElement.Add(addButton);
-
-        mainPageElement.Add(listView);
-
-        return mainPageElement;
+        return listView;
     }
 
     private VisualElement CreateSubPage()
@@ -154,7 +219,6 @@ public class AudioManagerEditor : Editor
         subPageElement.Add(volumeField);
 
         PropertyField typeField = new PropertyField();
-        //typeField.RegisterValueChangeCallback(TypeChanged);
         subPageElement.Add(typeField);
 
         PropertyField resetTimeField = new PropertyField();
@@ -164,7 +228,7 @@ public class AudioManagerEditor : Editor
         Button playButton = new Button(() =>
         {
             SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-            AudioManager.Instance.PlayInEditor(audioGroup.FindPropertyRelative("name").stringValue);
+            AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroup.FindPropertyRelative("name").stringValue);
         });
         playButton.text = "Play";
         subPageElement.Add(playButton);
@@ -174,15 +238,24 @@ public class AudioManagerEditor : Editor
             SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
             SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
             segmentsProperty.InsertArrayElementAtIndex(segmentsProperty.arraySize);
-            SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
+            SerializedProperty groupSegmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
+            SerializedProperty segmentProperty = groupSegmentProperty.FindPropertyRelative("audioSegment");
             segmentProperty.FindPropertyRelative("volume").floatValue = 1f;
             segmentProperty.FindPropertyRelative("pitch").floatValue = 1f;
-            segmentProperty.FindPropertyRelative("weight").intValue = 1;
+            groupSegmentProperty.FindPropertyRelative("weight").intValue = 1;
             serializedObject.ApplyModifiedProperties();
         });
         addButton.text = "Add";
         subPageElement.Add(addButton);
 
+        ListView listView = MakeAudioGroupSegmentListView();
+        subPageElement.Add(listView);
+
+        return subPageElement;
+    }
+
+    private ListView MakeAudioGroupSegmentListView()
+    {
         Func<VisualElement> makeItem = () =>
         {
             VisualElement element = new VisualElement();
@@ -196,7 +269,7 @@ public class AudioManagerEditor : Editor
                 SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
                 SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex((int)element.userData);
                 float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
-                AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
+                AudioManager.Instance.PlayInEditor(AudioType.Group, audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
             });
             playButton.text = "Play";
             element.Add(playButton);
@@ -222,34 +295,9 @@ public class AudioManagerEditor : Editor
             (element.ElementAt(0) as PropertyField).BindProperty(segmentsProperty.GetArrayElementAtIndex(index));
         };
 
-        var listView = new ListView();
-        listView.makeItem = makeItem;
-        listView.bindItem = bindItem;
-        listView.showFoldoutHeader = true;
-        listView.showBoundCollectionSize = false;
-        listView.headerTitle = "Segments";
-        listView.fixedItemHeight = 170;
-        listView.style.width = 400;
-        //listView.style.maxWidth = 600;
 
-        listView.style.flexGrow = 1.0f;
-        listView.reorderable = true;
-        listView.selectionType = SelectionType.None;
-        listView.showBorder = true;
-        listView.showAlternatingRowBackgrounds = AlternatingRowBackground.All;
-
-        subPageElement.Add(listView);
-
-        return subPageElement;
+        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400);
     }
-
-    //private void TypeChanged(SerializedPropertyChangeEvent evt)
-    //{
-    //    if (evt.changedProperty.intValue == 0)
-    //        resetTimeElement.style.display = DisplayStyle.None;
-    //    else
-    //        resetTimeElement.style.display = DisplayStyle.Flex;
-    //}
 
     private void GoToSubPage(int index)
     {
@@ -276,7 +324,7 @@ public class AudioManagerEditor : Editor
         enableDeleting = evt.newValue;
     }
 
-    private string CreateDefaultName(SerializedProperty audioGroupsProperty)
+    private string CreateDefaultAudioGroupName(SerializedProperty audioGroupsProperty)
     {
         string title = "Audio Group ";
 
@@ -288,6 +336,29 @@ public class AudioManagerEditor : Editor
             for (int i = 0; i < audioGroupsProperty.arraySize; i++)
             {
                 if (audioGroupsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == testTitle)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return testTitle;
+            index++;
+        }
+    }
+
+    private string CreateDefaultAudioSegmentName(SerializedProperty audioSegmentsProperty)
+    {
+        string title = "Segment ";
+
+        int index = 1;
+        while (true)
+        {
+            string testTitle = title + index;
+            bool found = false;
+            for (int i = 0; i < audioSegmentsProperty.arraySize; i++)
+            {
+                if (audioSegmentsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("audioName").stringValue == testTitle)
                 {
                     found = true;
                     break;

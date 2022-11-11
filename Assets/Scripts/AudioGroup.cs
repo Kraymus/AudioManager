@@ -54,7 +54,6 @@ public class AudioGroup
         if (currentSequence >= segments.Count)
             currentSequence = 0;
         AudioGroupSegment segment = segments[currentSequence];
-        Debug.Log("Sequence " + currentSequence);
         currentSequence++;
         return segment;
     }
