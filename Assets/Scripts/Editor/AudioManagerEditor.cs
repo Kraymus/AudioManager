@@ -46,7 +46,7 @@ public class AudioManagerEditor : Editor
         Button addAudioGroupButton = new Button(() =>
         {
             audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
-            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
+            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultAudioGroupName(audioGroupsProperty);
             audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
             serializedObject.ApplyModifiedProperties();
         });
@@ -61,8 +61,9 @@ public class AudioManagerEditor : Editor
         {
             audioSegmentsProperty.InsertArrayElementAtIndex(audioSegmentsProperty.arraySize);
             // Set default values
-            //audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
-            //audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioName").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty);
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("volume").floatValue = 1f;
+            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("pitch").floatValue = 1f;
             serializedObject.ApplyModifiedProperties();
         });
         addAudioSegmentButton.text = "Add";
@@ -150,9 +151,6 @@ public class AudioManagerEditor : Editor
             Button playButton = new Button(() =>
             {
                 AudioManager.Instance.PlayInEditor(AudioType.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("audioName").stringValue);
-                //SerializedProperty segmentProperty = audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData);
-                //float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
-                //AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
             });
             playButton.text = "Play";
             element.Add(playButton);
@@ -326,7 +324,7 @@ public class AudioManagerEditor : Editor
         enableDeleting = evt.newValue;
     }
 
-    private string CreateDefaultName(SerializedProperty audioGroupsProperty)
+    private string CreateDefaultAudioGroupName(SerializedProperty audioGroupsProperty)
     {
         string title = "Audio Group ";
 
@@ -338,6 +336,29 @@ public class AudioManagerEditor : Editor
             for (int i = 0; i < audioGroupsProperty.arraySize; i++)
             {
                 if (audioGroupsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == testTitle)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return testTitle;
+            index++;
+        }
+    }
+
+    private string CreateDefaultAudioSegmentName(SerializedProperty audioSegmentsProperty)
+    {
+        string title = "Segment ";
+
+        int index = 1;
+        while (true)
+        {
+            string testTitle = title + index;
+            bool found = false;
+            for (int i = 0; i < audioSegmentsProperty.arraySize; i++)
+            {
+                if (audioSegmentsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("audioName").stringValue == testTitle)
                 {
                     found = true;
                     break;
