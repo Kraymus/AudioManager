@@ -34,6 +34,38 @@ public class AudioManagerEditor : Editor
 
         SerializedProperty audioGroupsProperty = serializedObject.FindProperty("audioGroups");
 
+        SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
+        PropertyField playerTransformField = new PropertyField();
+        playerTransformField.BindProperty(playerTransformProperty);
+        mainPageElement.Add(playerTransformField);
+
+        Toggle toggle = new Toggle("Enable Deleting");
+        toggle.RegisterValueChangedCallback(OnToggleChanged);
+        mainPageElement.Add(toggle);
+
+        Button addButton = new Button(() =>
+        {
+            audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
+            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
+            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
+            serializedObject.ApplyModifiedProperties();
+        });
+        addButton.text = "Add";
+        mainPageElement.Add(addButton);
+
+        ListView audioGroupListView = MakeAudioGroupListView(audioGroupsProperty);
+        mainPageElement.Add(audioGroupListView);
+
+        SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
+        PropertyField audioSegmentsField = new PropertyField();
+        audioSegmentsField.BindProperty(audioSegmentsProperty);
+        mainPageElement.Add(audioSegmentsField);
+
+        return mainPageElement;
+    }
+
+    private ListView MakeAudioGroupListView(SerializedProperty audioGroupsProperty)
+    {
         Func<VisualElement> makeItem = () =>
         {
             VisualElement element = new VisualElement();
@@ -94,95 +126,11 @@ public class AudioManagerEditor : Editor
             (element.ElementAt(0).ElementAt(1) as PropertyField).BindProperty(audioGroupsProperty.GetArrayElementAtIndex(index).FindPropertyRelative("volume"));
         };
 
-        var listView = new ListView();
-        listView.bindingPath = audioGroupsProperty.propertyPath;
-        listView.makeItem = makeItem;
-        listView.bindItem = bindItem;
-        listView.showFoldoutHeader = true;
-        listView.showBoundCollectionSize = false;
-        listView.headerTitle = "Audio Groups";
-        listView.fixedItemHeight = 50;
-
-        listView.style.flexGrow = 1.0f;
-        listView.reorderable = true;
-        listView.selectionType = SelectionType.None;
-        listView.showBorder = true;
-        listView.showAlternatingRowBackgrounds = AlternatingRowBackground.All;
-
-        SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
-        PropertyField playerTransformField = new PropertyField();
-        playerTransformField.BindProperty(playerTransformProperty);
-        mainPageElement.Add(playerTransformField);
-
-        Toggle toggle = new Toggle("Enable Deleting");
-        toggle.RegisterValueChangedCallback(OnToggleChanged);
-        mainPageElement.Add(toggle);
-
-        Button addButton = new Button(() =>
-        {
-            audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
-            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty);
-            audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
-            serializedObject.ApplyModifiedProperties();
-        });
-        addButton.text = "Add";
-        mainPageElement.Add(addButton);
-
-        mainPageElement.Add(listView);
-
-        return mainPageElement;
+        return SetListViewSettings(makeItem, bindItem, "Audio Groups", 50, bindingPath: audioGroupsProperty.propertyPath);
     }
 
-    private VisualElement CreateSubPage()
+    private ListView MakeAudioSegmentListView()
     {
-        VisualElement subPageElement = new VisualElement();
-
-        Button backButton = new Button(() =>
-        {
-            GoToMainPage();
-        });
-        backButton.text = "Back";
-        subPageElement.Add(backButton);
-
-        TextField nameTextField = new TextField();
-        subPageElement.Add(nameTextField);
-
-        HelpBox helpBox = new HelpBox("The Audio Group name is used as strings in scripts to play sounds. \nBe careful when you change the name!", HelpBoxMessageType.Warning);
-        subPageElement.Add(helpBox);
-
-        PropertyField volumeField = new PropertyField();
-        subPageElement.Add(volumeField);
-
-        PropertyField typeField = new PropertyField();
-        //typeField.RegisterValueChangeCallback(TypeChanged);
-        subPageElement.Add(typeField);
-
-        PropertyField resetTimeField = new PropertyField();
-        resetTimeElement = resetTimeField;
-        subPageElement.Add(resetTimeField);
-
-        Button playButton = new Button(() =>
-        {
-            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-            AudioManager.Instance.PlayInEditor(audioGroup.FindPropertyRelative("name").stringValue);
-        });
-        playButton.text = "Play";
-        subPageElement.Add(playButton);
-
-        Button addButton = new Button(() =>
-        {
-            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-            SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
-            segmentsProperty.InsertArrayElementAtIndex(segmentsProperty.arraySize);
-            SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
-            segmentProperty.FindPropertyRelative("volume").floatValue = 1f;
-            segmentProperty.FindPropertyRelative("pitch").floatValue = 1f;
-            segmentProperty.FindPropertyRelative("weight").intValue = 1;
-            serializedObject.ApplyModifiedProperties();
-        });
-        addButton.text = "Add";
-        subPageElement.Add(addButton);
-
         Func<VisualElement> makeItem = () =>
         {
             VisualElement element = new VisualElement();
@@ -222,15 +170,22 @@ public class AudioManagerEditor : Editor
             (element.ElementAt(0) as PropertyField).BindProperty(segmentsProperty.GetArrayElementAtIndex(index));
         };
 
+        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400);
+    }
+
+    private static ListView SetListViewSettings(Func<VisualElement> makeItem, Action<VisualElement, int> bindItem, string title, int fixedItemHeight, int width = 0, string bindingPath = "")
+    {
         var listView = new ListView();
+        if (bindingPath != "")
+            listView.bindingPath = bindingPath;
         listView.makeItem = makeItem;
         listView.bindItem = bindItem;
         listView.showFoldoutHeader = true;
         listView.showBoundCollectionSize = false;
-        listView.headerTitle = "Segments";
-        listView.fixedItemHeight = 170;
-        listView.style.width = 400;
-        //listView.style.maxWidth = 600;
+        listView.headerTitle = title; //listView.headerTitle = "Segments";
+        listView.fixedItemHeight = fixedItemHeight; //listView.fixedItemHeight = 170;
+        if (width != 0)
+            listView.style.width = width; //listView.style.width = 400; // Not on all
 
         listView.style.flexGrow = 1.0f;
         listView.reorderable = true;
@@ -238,9 +193,107 @@ public class AudioManagerEditor : Editor
         listView.showBorder = true;
         listView.showAlternatingRowBackgrounds = AlternatingRowBackground.All;
 
+        return listView;
+    }
+
+    private VisualElement CreateSubPage()
+    {
+        VisualElement subPageElement = new VisualElement();
+
+        Button backButton = new Button(() =>
+        {
+            GoToMainPage();
+        });
+        backButton.text = "Back";
+        subPageElement.Add(backButton);
+
+        TextField nameTextField = new TextField();
+        subPageElement.Add(nameTextField);
+
+        HelpBox helpBox = new HelpBox("The Audio Group name is used as strings in scripts to play sounds. \nBe careful when you change the name!", HelpBoxMessageType.Warning);
+        subPageElement.Add(helpBox);
+
+        PropertyField volumeField = new PropertyField();
+        subPageElement.Add(volumeField);
+
+        PropertyField typeField = new PropertyField();
+        subPageElement.Add(typeField);
+
+        PropertyField resetTimeField = new PropertyField();
+        resetTimeElement = resetTimeField;
+        subPageElement.Add(resetTimeField);
+
+        Button playButton = new Button(() =>
+        {
+            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+            AudioManager.Instance.PlayInEditor(audioGroup.FindPropertyRelative("name").stringValue);
+        });
+        playButton.text = "Play";
+        subPageElement.Add(playButton);
+
+        Button addButton = new Button(() =>
+        {
+            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+            SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+            segmentsProperty.InsertArrayElementAtIndex(segmentsProperty.arraySize);
+            SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex(segmentsProperty.arraySize - 1);
+            segmentProperty.FindPropertyRelative("volume").floatValue = 1f;
+            segmentProperty.FindPropertyRelative("pitch").floatValue = 1f;
+            segmentProperty.FindPropertyRelative("weight").intValue = 1;
+            serializedObject.ApplyModifiedProperties();
+        });
+        addButton.text = "Add";
+        subPageElement.Add(addButton);
+
+        ListView listView = MakeAudioGroupSegmentListView();
         subPageElement.Add(listView);
 
         return subPageElement;
+    }
+
+    private ListView MakeAudioGroupSegmentListView()
+    {
+        Func<VisualElement> makeItem = () =>
+        {
+            VisualElement element = new VisualElement();
+
+            PropertyField propertyField = new PropertyField();
+            element.Add(propertyField);
+
+            Button playButton = new Button(() =>
+            {
+                SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+                SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+                SerializedProperty segmentProperty = segmentsProperty.GetArrayElementAtIndex((int)element.userData);
+                float audioGroupVolume = audioGroup.FindPropertyRelative("volume").floatValue;
+                AudioManager.Instance.PlayAudioGroupSegmentInEditor(audioGroup.FindPropertyRelative("name").stringValue, (int)element.userData);
+            });
+            playButton.text = "Play";
+            element.Add(playButton);
+
+            Button deleteButton = new Button(() =>
+            {
+                SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+                SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+                segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                serializedObject.ApplyModifiedProperties();
+            });
+            deleteButton.text = "Delete";
+            element.Add(deleteButton);
+
+            return element;
+        };
+
+        Action<VisualElement, int> bindItem = (element, index) =>
+        {
+            SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+            SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+            element.userData = index;
+            (element.ElementAt(0) as PropertyField).BindProperty(segmentsProperty.GetArrayElementAtIndex(index));
+        };
+
+
+        return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400);
     }
 
     //private void TypeChanged(SerializedPropertyChangeEvent evt)
