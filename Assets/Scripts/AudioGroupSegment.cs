@@ -5,41 +5,33 @@ using UnityEngine;
 [System.Serializable]
 public class AudioGroupSegment
 {
-    [SerializeField] private AudioClip audioClip;
-    [Range(0, 1)]
-    [SerializeField] private float volume = 1;
-    [Range(0, 3)]
-    [SerializeField] private float pitch = 1;
-    [Range(0, 1)]
-    [SerializeField] private float randomVolume = 0;
-    [Range(0, 1)]
-    [SerializeField] private float randomPitch = 0;
+    [SerializeField] private AudioSegment audioSegment;
     [Range(1, 100)]
     [SerializeField] private int weight = 1;
 
     public AudioClip GetAudioClip()
     {
-        return audioClip;
+        return audioSegment.GetAudioClip();
     }
 
     public float GetVolume()
     {
-        return volume;
+        return audioSegment.GetVolume();
     }
 
     public float GetPitch()
     {
-        return pitch;
+        return audioSegment.GetPitch();
     }
 
     public float GetRandomVolume()
     {
-        return randomVolume;
+        return audioSegment.GetRandomVolume();
     }
 
     public float GetRandomPitch()
     {
-        return randomPitch;
+        return audioSegment.GetRandomPitch();
     }
 
     public int GetWeight()

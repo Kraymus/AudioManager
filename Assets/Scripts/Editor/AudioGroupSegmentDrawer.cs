@@ -12,11 +12,7 @@ public class AudioGroupSegmentDrawer : PropertyDrawer
     {
         VisualElement container = new VisualElement();
 
-        container.Add(new PropertyField(property.FindPropertyRelative("audioClip")));
-        container.Add(new PropertyField(property.FindPropertyRelative("volume")));
-        container.Add(new PropertyField(property.FindPropertyRelative("pitch")));
-        container.Add(new PropertyField(property.FindPropertyRelative("randomPitch")));
-        container.Add(new PropertyField(property.FindPropertyRelative("randomVolume")));
+        container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
         container.Add(new PropertyField(property.FindPropertyRelative("weight")));
 
         return container;
