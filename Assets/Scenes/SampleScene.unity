@@ -402,21 +402,21 @@ MonoBehaviour:
     volume: 1
     segments:
     - audioSegment:
-        audioClip: {fileID: 8300000, guid: 7a054a2dc7128f54694d8972aa9633aa, type: 3}
+        audioClip: {fileID: 8300000, guid: 4c240c129d166744fbb25f7a208cc881, type: 3}
+        volume: 0.579
+        pitch: 1
+        randomVolume: 0
+        randomPitch: 0
+      weight: 1
+    - audioSegment:
+        audioClip: {fileID: 8300000, guid: 2ca0975efcb871e4fad3c44df2cc0273, type: 3}
         volume: 1
         pitch: 1
         randomVolume: 0
         randomPitch: 0
       weight: 1
     - audioSegment:
-        audioClip: {fileID: 8300000, guid: 45f458bf5b837ec459bc125f9dedc3af, type: 3}
-        volume: 1
-        pitch: 1
-        randomVolume: 0
-        randomPitch: 0
-      weight: 1
-    - audioSegment:
-        audioClip: {fileID: 8300000, guid: 5bf697b223b07c947a6976d545e50abc, type: 3}
+        audioClip: {fileID: 8300000, guid: ce67027f17ab8174caaec10247a6a4e2, type: 3}
         volume: 1
         pitch: 1
         randomVolume: 0
@@ -424,7 +424,7 @@ MonoBehaviour:
       weight: 1
     type: 1
     resetTime: 0
-    currentSequence: 2
+    currentSequence: 0
   audioSegments: []
 --- !u!4 &1816324814
 Transform:
@@ -451,10 +451,10 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: de27d3c78a0686047abd37dcd328eff7, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 4c240c129d166744fbb25f7a208cc881, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.542
-  m_Pitch: 0.93
+  m_Volume: 0.579
+  m_Pitch: 1
   Loop: 0
   Mute: 0
   Spatialize: 0

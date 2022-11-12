@@ -33,6 +33,7 @@ public class AudioManager : MonoBehaviour
 
     private Dictionary<GameObject, float> audioTimerPlayer = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, float> audioTimerPositional = new Dictionary<GameObject, float>();
+    private Dictionary<AudioGroup, float> sequenceResetTimer = new Dictionary<AudioGroup, float>();
 
     private static AudioManager instance = null;
     public static AudioManager Instance 
@@ -80,6 +81,21 @@ public class AudioManager : MonoBehaviour
                 {
                     audioPoolPositional.Release(key);
                     audioTimerPositional.Remove(key);
+                }
+            }
+        }
+
+        if (sequenceResetTimer.Count > 0)
+        {
+            var sequenceResetTimerKeys = sequenceResetTimer.Keys.ToList();
+            for (int i = sequenceResetTimerKeys.Count - 1; i >= 0; i--)
+            {
+                var key = sequenceResetTimerKeys[i];
+                sequenceResetTimer[key] -= Time.deltaTime;
+                if (sequenceResetTimer[key] <= 0)
+                {
+                    key.ResetSequence();
+                    sequenceResetTimer.Remove(key);
                 }
             }
         }
@@ -210,7 +226,10 @@ public class AudioManager : MonoBehaviour
         }
         else // Sequence
         {
-            //int audioGroupResetTime = audioGroup.GetResetTime();
+            float audioGroupResetTime = audioGroup.GetResetTime();
+            if (audioGroupResetTime > 0)
+                sequenceResetTimer[audioGroup] = audioGroupResetTime;
+
             return (audioGroup.SequenceStep().GetAudioSegment(), audioGroup.GetVolume());
         }
     }
@@ -220,7 +239,7 @@ public class AudioManager : MonoBehaviour
         return audioSegmentDict[audioName].GetAudioSegment();
     }
 
-    private AudioClip PlayAudioSegment(AudioSegment audioSegment, float volumeModifier, AudioSource audioSource)
+    private void PlayAudioSegment(AudioSegment audioSegment, float volumeModifier, AudioSource audioSource)
     {
         audioSource.clip = audioSegment.GetAudioClip();
         float volume = audioSegment.GetVolume();
@@ -232,7 +251,6 @@ public class AudioManager : MonoBehaviour
         audioSource.volume = finalVolume;
         audioSource.pitch = finalPitch;
         audioSource.Play();
-        return audioSource.clip;
     }
 
     private void BuildAudioDicts()

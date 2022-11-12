@@ -12,7 +12,6 @@ public class AudioManagerEditor : Editor
     private bool enableDeleting = false;
     private VisualElement mainPage;
     private VisualElement subPage;
-    private VisualElement resetTimeElement;
     private int audioGroupIndex;
 
     public override VisualElement CreateInspectorGUI()
@@ -222,7 +221,6 @@ public class AudioManagerEditor : Editor
         subPageElement.Add(typeField);
 
         PropertyField resetTimeField = new PropertyField();
-        resetTimeElement = resetTimeField;
         subPageElement.Add(resetTimeField);
 
         Button playButton = new Button(() =>
