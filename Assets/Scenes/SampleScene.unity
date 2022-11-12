@@ -425,7 +425,27 @@ MonoBehaviour:
     type: 1
     resetTime: 0
     currentSequence: 0
-  audioSegments: []
+  audioSegments:
+  - audioName: Segment 1
+    audioSegment:
+      audioClip: {fileID: 0}
+      volume: 1
+      pitch: 1
+      randomVolume: 0
+      randomPitch: 0
+  music:
+  - name: Music 1
+    audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+    volume: 1
+  - name: Music 2
+    audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+    volume: 1
+  - name: Music 3
+    audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+    volume: 1
+  - name: Music 4
+    audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
+    volume: 1
 --- !u!4 &1816324814
 Transform:
   m_ObjectHideFlags: 0
@@ -451,9 +471,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 4c240c129d166744fbb25f7a208cc881, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 05ffa2ff6602e834d8da0e01aad86bec, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.579
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0

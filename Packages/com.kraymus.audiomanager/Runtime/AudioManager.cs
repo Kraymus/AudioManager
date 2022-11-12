@@ -24,12 +24,15 @@ namespace Kraymus.AudioManager
         private List<AudioGroup> audioGroups;
         [SerializeField]
         private List<NamedAudioSegment> audioSegments;
+        [SerializeField]
+        private List<Music> music;
 
 #if UNITY_EDITOR
         private AudioSource editorAudioSource;
 #endif
         private Dictionary<string, AudioGroup> audioGroupDict = new Dictionary<string, AudioGroup>();
         private Dictionary<string, NamedAudioSegment> audioSegmentDict = new Dictionary<string, NamedAudioSegment>();
+        private Dictionary<string, Music> musicDict = new Dictionary<string, Music>();
         private ObjectPool<GameObject> audioPoolPlayer = new ObjectPool<GameObject>(OnCreatePlayerAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
         private ObjectPool<GameObject> audioPoolPositional = new ObjectPool<GameObject>(OnCreatePositionalAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
 
@@ -117,63 +120,80 @@ namespace Kraymus.AudioManager
             editorAudioSource.playOnAwake = false;
         }
 
-        public void PlayInEditor(AudioCategory audioType, string audioName, int audioGroupSegmentIndex = -1)
+        public void PlayInEditor(AudioCategory audioCategory, string audioName, int audioGroupSegmentIndex = -1)
         {
             if (!Application.isPlaying)
                 BuildAudioDicts();
 
-            AudioSegment audioSegment = null;
             float volumeModifier = 1f;
             InitializeEditorAudioSource();
-            if (audioType == AudioCategory.Group)
-                (audioSegment, volumeModifier) = GetAudioGroupSegment(audioName, audioGroupSegmentIndex);
-            else if (audioType == AudioCategory.Segment)
-                audioSegment = GetAudioSegment(audioName);
-
-
-            if (audioSegment != null)
-                PlayAudioSegment(audioSegment, volumeModifier, editorAudioSource);
-        }
-#endif
-
-        public void Play(AudioCategory audioType, string audioName)
-        {
-
-            Play(audioType, audioName, playerTransform.position, playerTransform, audioPoolPlayer, audioTimerPlayer);
-        }
-
-        public void Play(AudioCategory audioType, string audioName, Vector3 position)
-        {
-            Play(audioType, audioName, position, transform, audioPoolPositional, audioTimerPositional);
-        }
-
-        private void Play(AudioCategory audioType, string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, Dictionary<GameObject, float> timer)
-        {
-            AudioSegment audioSegment = null;
-            float volumeModifier = 1f;
-            if (audioType == AudioCategory.Music)
+            if (audioCategory == AudioCategory.Music)
             {
-                Debug.LogWarning("Music not implemented");
+                Music m = GetMusic(audioName);
+                if (m != null)
+                    PlayMusic(m, editorAudioSource);
             }
             else
             {
-                if (audioType == AudioCategory.Group)
+                AudioSegment audioSegment = null;
+                if (audioCategory == AudioCategory.Group)
+                    (audioSegment, volumeModifier) = GetAudioGroupSegment(audioName, audioGroupSegmentIndex);
+                else if (audioCategory == AudioCategory.Segment)
+                    audioSegment = GetAudioSegment(audioName);
+
+                if (audioSegment != null)
+                    PlayAudioSegment(audioSegment, volumeModifier, editorAudioSource);
+            }
+        }
+#endif
+
+        public void Play(AudioCategory audioCatefory, string audioName)
+        {
+
+            Play(audioCatefory, audioName, playerTransform.position, playerTransform, audioPoolPlayer, audioTimerPlayer);
+        }
+
+        public void Play(AudioCategory audioCategory, string audioName, Vector3 position)
+        {
+            Play(audioCategory, audioName, position, transform, audioPoolPositional, audioTimerPositional);
+        }
+
+        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, Dictionary<GameObject, float> timer)
+        {
+            if (audioCategory == AudioCategory.Music)
+            {
+                Music m = GetMusic(audioName);
+                if (m != null)
+                {
+                    PlayMusic(m, editorAudioSource);
+                    GameObject audioObject = pool.Get();
+                    audioObject.transform.position = position;
+                    audioObject.transform.parent = parent;
+                    PlayMusic(m, audioObject.GetComponent<AudioSource>());
+                    timer.Add(audioObject, m.GetAudioClip().length);
+                }
+            }
+            else
+            {
+                AudioSegment audioSegment = null;
+                float volumeModifier = 1f;
+                if (audioCategory == AudioCategory.Group)
                 {
                     (audioSegment, volumeModifier) = GetAudioGroupSegment(audioName);
                 }
-                else // AudioType.Segment
+                else if (audioCategory == AudioCategory.Segment)
                 {
                     audioSegment = GetAudioSegment(audioName);
                 }
-            }
 
-            if (audioSegment != null)
-            {
-                GameObject audioObject = pool.Get();
-                audioObject.transform.position = position;
-                audioObject.transform.parent = parent;
-                PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
-                timer.Add(audioObject, audioSegment.GetAudioClip().length);
+                if (audioSegment != null)
+                {
+                    GameObject audioObject = pool.Get();
+                    audioObject.transform.position = position;
+                    audioObject.transform.parent = parent;
+                    PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
+                    timer.Add(audioObject, audioSegment.GetAudioClip().length);
+                }
             }
         }
 
@@ -241,6 +261,11 @@ namespace Kraymus.AudioManager
             return audioSegmentDict[audioName].GetAudioSegment();
         }
 
+        private Music GetMusic(string musicName)
+        {
+            return musicDict[musicName];
+        }
+
         private void PlayAudioSegment(AudioSegment audioSegment, float volumeModifier, AudioSource audioSource)
         {
             audioSource.clip = audioSegment.GetAudioClip();
@@ -255,6 +280,14 @@ namespace Kraymus.AudioManager
             audioSource.Play();
         }
 
+        private void PlayMusic(Music m, AudioSource audioSource)
+        {
+            audioSource.clip = m.GetAudioClip();
+            audioSource.volume = m.GetVolume();
+            audioSource.pitch = 1f;
+            audioSource.Play();
+        }
+
         private void BuildAudioDicts()
         {
             audioGroupDict.Clear();
@@ -264,6 +297,10 @@ namespace Kraymus.AudioManager
             audioSegmentDict.Clear();
             foreach (NamedAudioSegment audioSegment in audioSegments)
                 audioSegmentDict.Add(audioSegment.GetName(), audioSegment);
+
+            musicDict.Clear();
+            foreach (Music m in music)
+                musicDict.Add(m.GetName(), m);
         }
 
         #region PoolFunctions

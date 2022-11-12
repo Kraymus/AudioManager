@@ -2,19 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class Music
+namespace Kraymus.AudioManager
 {
-    [SerializeField] private AudioClip audioClip;
-    [SerializeField] private float volume;
-
-    public AudioClip GetAudioClip()
+    [System.Serializable]
+    public class Music
     {
-        return audioClip;
-    }
+        [SerializeField] private string name;
+        [SerializeField] private AudioClip audioClip;
+        [SerializeField, Range(0, 1)] private float volume;
 
-    public float GetVolume()
-    {
-        return volume;
+        public string GetName()
+        {
+            return name;
+        }
+
+        public AudioClip GetAudioClip()
+        {
+            return audioClip;
+        }
+
+        public float GetVolume()
+        {
+            return volume;
+        }
     }
 }
