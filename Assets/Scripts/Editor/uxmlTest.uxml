@@ -1,7 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <ui:Label text="Test" display-tooltip-when-elided="true" name="TestLabel" />
-    <ui:Slider picking-mode="Ignore" label="Slider" value="42" high-value="100" />
-    <ui:ListView focusable="true" reorderable="false" show-foldout-header="false" />
-    <ui:VisualElement style="background-color: rgba(255, 0, 0, 255); height: 2px; margin-left: 2px; margin-right: 2px;" />
-    <ui:Label text="Label" display-tooltip-when-elided="true" style="margin-top: 25px;" />
-</ui:UXML>
