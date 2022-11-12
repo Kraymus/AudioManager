@@ -5,16 +5,19 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[CustomPropertyDrawer(typeof(AudioGroupSegment))]
-public class AudioGroupSegmentDrawer : PropertyDrawer
+namespace Kraymus.AudioManager
 {
-    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    [CustomPropertyDrawer(typeof(AudioGroupSegment))]
+    public class AudioGroupSegmentDrawer : PropertyDrawer
     {
-        VisualElement container = new VisualElement();
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            VisualElement container = new VisualElement();
 
-        container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
-        container.Add(new PropertyField(property.FindPropertyRelative("weight")));
+            container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
+            container.Add(new PropertyField(property.FindPropertyRelative("weight")));
 
-        return container;
+            return container;
+        }
     }
 }

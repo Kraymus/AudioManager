@@ -2,45 +2,48 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class AudioGroupSegment
+namespace Kraymus.AudioManager
 {
-    [SerializeField] private AudioSegment audioSegment;
-    [Range(1, 100)]
-    [SerializeField] private int weight = 1;
-
-    public AudioClip GetAudioClip()
+    [System.Serializable]
+    public class AudioGroupSegment
     {
-        return audioSegment.GetAudioClip();
-    }
+        [SerializeField] private AudioSegment audioSegment;
+        [Range(1, 100)]
+        [SerializeField] private int weight = 1;
 
-    public float GetVolume()
-    {
-        return audioSegment.GetVolume();
-    }
+        public AudioClip GetAudioClip()
+        {
+            return audioSegment.GetAudioClip();
+        }
 
-    public float GetPitch()
-    {
-        return audioSegment.GetPitch();
-    }
+        public float GetVolume()
+        {
+            return audioSegment.GetVolume();
+        }
 
-    public float GetRandomVolume()
-    {
-        return audioSegment.GetRandomVolume();
-    }
+        public float GetPitch()
+        {
+            return audioSegment.GetPitch();
+        }
 
-    public float GetRandomPitch()
-    {
-        return audioSegment.GetRandomPitch();
-    }
+        public float GetRandomVolume()
+        {
+            return audioSegment.GetRandomVolume();
+        }
 
-    public int GetWeight()
-    {
-        return weight;
-    }
+        public float GetRandomPitch()
+        {
+            return audioSegment.GetRandomPitch();
+        }
 
-    public AudioSegment GetAudioSegment()
-    {
-        return audioSegment;
+        public int GetWeight()
+        {
+            return weight;
+        }
+
+        public AudioSegment GetAudioSegment()
+        {
+            return audioSegment;
+        }
     }
 }

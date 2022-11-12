@@ -5,16 +5,19 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[CustomPropertyDrawer(typeof(NamedAudioSegment))]
-public class NamedAudioSegmentDrawer : PropertyDrawer
+namespace Kraymus.AudioManager
 {
-    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    [CustomPropertyDrawer(typeof(NamedAudioSegment))]
+    public class NamedAudioSegmentDrawer : PropertyDrawer
     {
-        VisualElement container = new VisualElement();
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            VisualElement container = new VisualElement();
 
-        container.Add(new PropertyField(property.FindPropertyRelative("audioName")));
-        container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
+            container.Add(new PropertyField(property.FindPropertyRelative("audioName")));
+            container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
 
-        return container;
+            return container;
+        }
     }
 }

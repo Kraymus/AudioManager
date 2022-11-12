@@ -2,44 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class NamedAudioSegment
+namespace Kraymus.AudioManager
 {
-    [SerializeField] private string audioName;
-    [SerializeField] private AudioSegment audioSegment;
-
-    public AudioClip GetAudioClip()
+    [System.Serializable]
+    public class NamedAudioSegment
     {
-        return audioSegment.GetAudioClip();
-    }
+        [SerializeField] private string audioName;
+        [SerializeField] private AudioSegment audioSegment;
 
-    public float GetVolume()
-    {
-        return audioSegment.GetVolume();
-    }
+        public AudioClip GetAudioClip()
+        {
+            return audioSegment.GetAudioClip();
+        }
 
-    public float GetPitch()
-    {
-        return audioSegment.GetPitch();
-    }
+        public float GetVolume()
+        {
+            return audioSegment.GetVolume();
+        }
 
-    public float GetRandomVolume()
-    {
-        return audioSegment.GetRandomVolume();
-    }
+        public float GetPitch()
+        {
+            return audioSegment.GetPitch();
+        }
 
-    public float GetRandomPitch()
-    {
-        return audioSegment.GetRandomPitch();
-    }
+        public float GetRandomVolume()
+        {
+            return audioSegment.GetRandomVolume();
+        }
 
-    public string GetName()
-    {
-        return audioName;
-    }
+        public float GetRandomPitch()
+        {
+            return audioSegment.GetRandomPitch();
+        }
 
-    public AudioSegment GetAudioSegment()
-    {
-        return audioSegment;
+        public string GetName()
+        {
+            return audioName;
+        }
+
+        public AudioSegment GetAudioSegment()
+        {
+            return audioSegment;
+        }
     }
 }

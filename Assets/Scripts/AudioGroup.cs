@@ -2,64 +2,67 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AudioGroupType
+namespace Kraymus.AudioManager
 {
-    Random,
-    Sequence
-}
-
-[System.Serializable]
-public class AudioGroup
-{
-    [SerializeField]
-    private string name;
-    [SerializeField, Range(0, 1)]
-    private float volume;
-    [SerializeField]
-    private List<AudioGroupSegment> segments = new List<AudioGroupSegment>();
-    [SerializeField]
-    private AudioGroupType type;
-    [SerializeField]
-    private float resetTime;
-    [SerializeField]
-    private int currentSequence = 0;
-
-    public string GetName()
+    public enum AudioGroupType
     {
-        return name;
+        Random,
+        Sequence
     }
 
-    public float GetVolume()
+    [System.Serializable]
+    public class AudioGroup
     {
-        return volume;
-    }
+        [SerializeField]
+        private string name;
+        [SerializeField, Range(0, 1)]
+        private float volume;
+        [SerializeField]
+        private List<AudioGroupSegment> segments = new List<AudioGroupSegment>();
+        [SerializeField]
+        private AudioGroupType type;
+        [SerializeField]
+        private float resetTime;
+        [SerializeField]
+        private int currentSequence = 0;
 
-    public AudioGroupType GetAudioGroupType()
-    {
-        return type;
-    }
+        public string GetName()
+        {
+            return name;
+        }
 
-    public float GetResetTime()
-    {
-        return resetTime;
-    }
+        public float GetVolume()
+        {
+            return volume;
+        }
 
-    public List<AudioGroupSegment> GetSegments()
-    {
-        return segments;
-    }
+        public AudioGroupType GetAudioGroupType()
+        {
+            return type;
+        }
 
-    public AudioGroupSegment SequenceStep()
-    {
-        if (currentSequence >= segments.Count)
+        public float GetResetTime()
+        {
+            return resetTime;
+        }
+
+        public List<AudioGroupSegment> GetSegments()
+        {
+            return segments;
+        }
+
+        public AudioGroupSegment SequenceStep()
+        {
+            if (currentSequence >= segments.Count)
+                currentSequence = 0;
+            AudioGroupSegment segment = segments[currentSequence];
+            currentSequence++;
+            return segment;
+        }
+
+        public void ResetSequence()
+        {
             currentSequence = 0;
-        AudioGroupSegment segment = segments[currentSequence];
-        currentSequence++;
-        return segment;
-    }
-
-    public void ResetSequence()
-    {
-        currentSequence = 0;
+        }
     }
 }
