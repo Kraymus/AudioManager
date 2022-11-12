@@ -1,7 +1,4 @@
-# Custom
-Audio/
 
-#--------------------------------------------------------------------------------------
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
@@ -482,3 +479,8 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio
+
+#--------------------------------------------------------------------------------------
+# Custom
+Audio/
+!/Packages/com.kraymus.audiomanager
