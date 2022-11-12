@@ -1,0 +1,20 @@
+{
+  "name": "com.kraymus.audiomanager",
+  "version": "0.1.0",
+  "displayName": "Audio Manager",
+  "description": "This is an example package",
+  "unity": "2021.3",
+  "unityRelease": "12f1",
+  "keywords": [
+    "audio",
+    "manager",
+    "audiomanager",
+    "music",
+    "sound",
+    "sfx"
+  ],
+  "author": {
+    "name": "Kraymus"
+  },
+  "type": "tool"
+}

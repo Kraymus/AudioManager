@@ -1,0 +1,16 @@
+{
+    "name": "kraymus.audiomanager.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9ca0aebf83cba7c4eb1268a876a9d1c2"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
