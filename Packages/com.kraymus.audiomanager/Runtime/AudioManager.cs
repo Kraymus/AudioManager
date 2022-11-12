@@ -145,6 +145,11 @@ namespace Kraymus.AudioManager
                     PlayAudioSegment(audioSegment, volumeModifier, editorAudioSource);
             }
         }
+
+        public void StopMusicInEditor()
+        {
+            editorAudioSource.Stop();
+        }
 #endif
 
         public void Play(AudioCategory audioCatefory, string audioName)

@@ -94,6 +94,13 @@ namespace Kraymus.AudioManager
             addMusicButton.text = "Add";
             mainPageElement.Add(addMusicButton);
 
+            Button stopMusicButton = new Button(() =>
+            {
+                AudioManager.Instance.StopMusicInEditor();
+            });
+            stopMusicButton.text = "Stop";
+            mainPageElement.Add(stopMusicButton);
+
             ListView musicListView = MakeMusicListView(musicProperty);
             mainPageElement.Add(musicListView);
 
