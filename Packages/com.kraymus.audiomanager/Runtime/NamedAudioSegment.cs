@@ -7,7 +7,7 @@ namespace Kraymus.AudioManager
     [System.Serializable]
     public class NamedAudioSegment
     {
-        [SerializeField] private string audioName;
+        [SerializeField] private string name;
         [SerializeField] private AudioSegment audioSegment;
 
         public AudioClip GetAudioClip()
@@ -37,7 +37,7 @@ namespace Kraymus.AudioManager
 
         public string GetName()
         {
-            return audioName;
+            return name;
         }
 
         public AudioSegment GetAudioSegment()

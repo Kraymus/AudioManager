@@ -69,7 +69,7 @@ namespace Kraymus.AudioManager
             {
                 audioSegmentsProperty.InsertArrayElementAtIndex(audioSegmentsProperty.arraySize);
                 // Set default values
-                audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioName").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty, "Segment ");
+                audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty, "Segment ");
                 audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("volume").floatValue = 1f;
                 audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("pitch").floatValue = 1f;
                 serializedObject.ApplyModifiedProperties();
@@ -182,7 +182,7 @@ namespace Kraymus.AudioManager
 
                 Button playButton = new Button(() =>
                 {
-                    AudioManager.Instance.PlayInEditor(AudioCategory.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("audioName").stringValue);
+                    AudioManager.Instance.PlayInEditor(AudioCategory.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
                 });
                 playButton.text = "Play";
                 element.Add(playButton);
@@ -421,7 +421,7 @@ namespace Kraymus.AudioManager
                 bool found = false;
                 for (int i = 0; i < audioProperty.arraySize; i++)
                 {
-                    if (audioProperty.GetArrayElementAtIndex(i).FindPropertyRelative("audioName").stringValue == testTitle)
+                    if (audioProperty.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == testTitle)
                     {
                         found = true;
                         break;

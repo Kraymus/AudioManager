@@ -247,7 +247,6 @@ namespace Kraymus.AudioManager
                 }
 
                 activeMusicObject = audioPool.Get();
-
                 activeMusicObject.transform.position = position;
                 activeMusicObject.transform.parent = parent;
                 PlayMusic(m, activeMusicObject.GetComponent<AudioSource>());
