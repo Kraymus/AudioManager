@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -35,10 +33,14 @@ namespace Kraymus.AudioManager
 
             SerializedProperty audioGroupsProperty = serializedObject.FindProperty("audioGroups");
 
+            // General Section
+
             SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
             PropertyField playerTransformField = new PropertyField();
             playerTransformField.BindProperty(playerTransformProperty);
             mainPageElement.Add(playerTransformField);
+
+            // Audio Groups Section
 
             Toggle toggle = new Toggle("Enable Deleting");
             toggle.RegisterValueChangedCallback(OnToggleChanged);
@@ -47,7 +49,8 @@ namespace Kraymus.AudioManager
             Button addAudioGroupButton = new Button(() =>
             {
                 audioGroupsProperty.InsertArrayElementAtIndex(audioGroupsProperty.arraySize);
-                audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultAudioGroupName(audioGroupsProperty);
+                // Set default values
+                audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(audioGroupsProperty, "Audio Group ");
                 audioGroupsProperty.GetArrayElementAtIndex(audioGroupsProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
                 serializedObject.ApplyModifiedProperties();
             });
@@ -57,12 +60,14 @@ namespace Kraymus.AudioManager
             ListView audioGroupsListView = MakeAudioGroupListView(audioGroupsProperty);
             mainPageElement.Add(audioGroupsListView);
 
+            // Audio Segments Section
+
             SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
             Button addAudioSegmentButton = new Button(() =>
             {
                 audioSegmentsProperty.InsertArrayElementAtIndex(audioSegmentsProperty.arraySize);
-            // Set default values
-            audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioName").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty);
+                // Set default values
+                audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultAudioSegmentName(audioSegmentsProperty, "Segment ");
                 audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("volume").floatValue = 1f;
                 audioSegmentsProperty.GetArrayElementAtIndex(audioSegmentsProperty.arraySize - 1).FindPropertyRelative("audioSegment").FindPropertyRelative("pitch").floatValue = 1f;
                 serializedObject.ApplyModifiedProperties();
@@ -72,6 +77,30 @@ namespace Kraymus.AudioManager
 
             ListView audioSegmentsListView = MakeAudioSegmentListView(audioSegmentsProperty);
             mainPageElement.Add(audioSegmentsListView);
+
+            // Music Section
+            SerializedProperty musicProperty = serializedObject.FindProperty("music");
+
+            Button addMusicButton = new Button(() =>
+            {
+                musicProperty.InsertArrayElementAtIndex(musicProperty.arraySize);
+                // TODO: Set default values
+                musicProperty.GetArrayElementAtIndex(musicProperty.arraySize - 1).FindPropertyRelative("name").stringValue = CreateDefaultName(musicProperty, "Music ");
+                musicProperty.GetArrayElementAtIndex(musicProperty.arraySize - 1).FindPropertyRelative("volume").floatValue = 1f;
+                serializedObject.ApplyModifiedProperties();
+            });
+            addMusicButton.text = "Add";
+            mainPageElement.Add(addMusicButton);
+
+            Button stopMusicButton = new Button(() =>
+            {
+                AudioManager.Instance.StopMusicInEditor();
+            });
+            stopMusicButton.text = "Stop";
+            mainPageElement.Add(stopMusicButton);
+
+            ListView musicListView = MakeMusicListView(musicProperty);
+            mainPageElement.Add(musicListView);
 
             return mainPageElement;
         }
@@ -151,7 +180,7 @@ namespace Kraymus.AudioManager
 
                 Button playButton = new Button(() =>
                 {
-                    AudioManager.Instance.PlayInEditor(AudioCategory.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("audioName").stringValue);
+                    AudioManager.Instance.PlayInEditor(AudioCategory.Segment, audioSegmentsProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
                 });
                 playButton.text = "Play";
                 element.Add(playButton);
@@ -175,6 +204,42 @@ namespace Kraymus.AudioManager
 
             return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400, audioSegmentsProperty.propertyPath);
         }
+
+        private ListView MakeMusicListView(SerializedProperty musicProperty)
+        {
+            Func<VisualElement> makeItem = () =>
+            {
+                VisualElement element = new VisualElement();
+
+                element.Add(new PropertyField());
+
+                Button playButton = new Button(() =>
+                {
+                    AudioManager.Instance.PlayInEditor(AudioCategory.Music, musicProperty.GetArrayElementAtIndex((int)element.userData).FindPropertyRelative("name").stringValue);
+                });
+                playButton.text = "Play";
+                element.Add(playButton);
+
+                Button deleteButton = new Button(() =>
+                {
+                    musicProperty.DeleteArrayElementAtIndex((int)element.userData);
+                    serializedObject.ApplyModifiedProperties();
+                });
+                deleteButton.text = "Delete";
+                element.Add(deleteButton);
+
+                return element;
+            };
+
+            Action<VisualElement, int> bindItem = (element, index) =>
+            {
+                element.userData = index;
+                (element.ElementAt(0) as PropertyField).BindProperty(musicProperty.GetArrayElementAtIndex(index));
+            };
+
+            return SetListViewSettings(makeItem, bindItem, "Music", 110, 400, musicProperty.propertyPath);
+        }
+
 
         private static ListView SetListViewSettings(Func<VisualElement> makeItem, Action<VisualElement, int> bindItem, string title, int fixedItemHeight, int width = 0, string bindingPath = "")
         {
@@ -324,10 +389,8 @@ namespace Kraymus.AudioManager
             enableDeleting = evt.newValue;
         }
 
-        private string CreateDefaultAudioGroupName(SerializedProperty audioGroupsProperty)
+        private string CreateDefaultName(SerializedProperty audioGroupsProperty, string title)
         {
-            string title = "Audio Group ";
-
             int index = 1;
             while (true)
             {
@@ -347,18 +410,16 @@ namespace Kraymus.AudioManager
             }
         }
 
-        private string CreateDefaultAudioSegmentName(SerializedProperty audioSegmentsProperty)
+        private string CreateDefaultAudioSegmentName(SerializedProperty audioProperty, string title)
         {
-            string title = "Segment ";
-
             int index = 1;
             while (true)
             {
                 string testTitle = title + index;
                 bool found = false;
-                for (int i = 0; i < audioSegmentsProperty.arraySize; i++)
+                for (int i = 0; i < audioProperty.arraySize; i++)
                 {
-                    if (audioSegmentsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("audioName").stringValue == testTitle)
+                    if (audioProperty.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue == testTitle)
                     {
                         found = true;
                         break;

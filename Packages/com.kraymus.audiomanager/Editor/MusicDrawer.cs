@@ -4,18 +4,16 @@ using UnityEngine.UIElements;
 
 namespace Kraymus.AudioManager
 {
-    [CustomPropertyDrawer(typeof(AudioSegment))]
-    public class AudioSegmentDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(Music))]
+    public class MusicDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement container = new VisualElement();
 
+            container.Add(new PropertyField(property.FindPropertyRelative("name")));
             container.Add(new PropertyField(property.FindPropertyRelative("audioClip")));
             container.Add(new PropertyField(property.FindPropertyRelative("volume")));
-            container.Add(new PropertyField(property.FindPropertyRelative("pitch")));
-            container.Add(new PropertyField(property.FindPropertyRelative("randomPitch")));
-            container.Add(new PropertyField(property.FindPropertyRelative("randomVolume")));
 
             return container;
         }
