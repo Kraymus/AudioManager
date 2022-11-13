@@ -1,16 +1,8 @@
 using Kraymus.AudioManager;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioManagerTester : MonoBehaviour
 {
-    // Update is called once per frame
-    private void Start()
-    {
-
-    }
-
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -28,7 +20,6 @@ public class AudioManagerTester : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             AudioManager.Instance.PlayMusic("Music 1", 5, 5);
-            Debug.Log("press");
         }
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
