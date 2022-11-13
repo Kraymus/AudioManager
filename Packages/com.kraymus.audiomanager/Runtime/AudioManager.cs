@@ -34,10 +34,13 @@ namespace Kraymus.AudioManager
         private Dictionary<string, AudioGroup> audioGroupDict = new Dictionary<string, AudioGroup>();
         private Dictionary<string, NamedAudioSegment> audioSegmentDict = new Dictionary<string, NamedAudioSegment>();
         private Dictionary<string, Music> musicDict = new Dictionary<string, Music>();
+
         private ObjectPool<GameObject> audioPool = new ObjectPool<GameObject>(OnCreateAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
-        
+
         private Dictionary<GameObject, float> audioPoolTimer = new Dictionary<GameObject, float>();
         private Dictionary<AudioGroup, float> sequenceResetTimer = new Dictionary<AudioGroup, float>();
+
+        private Transform poolTransform;
 
         private GameObject activeMusicObject = null;
         private List<MusicTimer> musicTimers = new List<MusicTimer>();
@@ -58,6 +61,16 @@ namespace Kraymus.AudioManager
         private void Awake()
         {
             BuildAudioDicts();
+            Transform pt = transform.Find("Pool");
+            if (pt != null)
+            {
+                poolTransform = pt;
+            }
+            else
+            {
+                poolTransform = new GameObject("Pool").transform;
+                poolTransform.parent = transform;
+            }
         }
 
         private void Update()
@@ -70,7 +83,7 @@ namespace Kraymus.AudioManager
                     musicTimers.RemoveAt(i);
                     TimerType timerType = musicTimer.GetTimerType();
                     if (timerType == TimerType.FadeOut)
-                        audioPool.Release(musicTimer.GetAudioObject());
+                        ReleasePoolObject(musicTimer.GetAudioObject());
                 }
             }
 
@@ -83,7 +96,7 @@ namespace Kraymus.AudioManager
                     audioPoolTimer[key] -= Time.deltaTime;
                     if (audioPoolTimer[key] <= 0)
                     {
-                        audioPool.Release(key);
+                        ReleasePoolObject(key);
                         audioPoolTimer.Remove(key);
                     }
                 }
@@ -241,7 +254,7 @@ namespace Kraymus.AudioManager
                     }
                     else
                     {
-                        audioPool.Release(activeMusicObject);
+                        ReleasePoolObject(activeMusicObject);
                     }
                 }
 
@@ -386,6 +399,12 @@ namespace Kraymus.AudioManager
         private static void OnDestroyAudio(GameObject obj)
         {
             Destroy(obj);
+        }
+
+        private void ReleasePoolObject(GameObject obj)
+        {
+            obj.transform.parent = poolTransform;
+            audioPool.Release(obj);
         }
         #endregion
     }
