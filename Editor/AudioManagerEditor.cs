@@ -61,7 +61,6 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(audioGroupsListView);
 
             // Audio Segments Section
-
             SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
             Button addAudioSegmentButton = new Button(() =>
             {
@@ -144,10 +143,17 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    if (enableDeleting)
+                    if (Application.isPlaying)
                     {
-                        audioGroupsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                        serializedObject.ApplyModifiedProperties();
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        if (enableDeleting)
+                        {
+                            audioGroupsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                            serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 });
                 deleteButton.text = "Delete";
@@ -187,8 +193,15 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);
@@ -222,8 +235,15 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    musicProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        musicProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);
@@ -341,10 +361,17 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-                    SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
-                    segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+                        SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+                        segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);
