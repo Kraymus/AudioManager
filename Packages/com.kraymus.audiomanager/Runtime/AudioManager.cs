@@ -35,11 +35,9 @@ namespace Kraymus.AudioManager
         private Dictionary<string, AudioGroup> audioGroupDict = new Dictionary<string, AudioGroup>();
         private Dictionary<string, NamedAudioSegment> audioSegmentDict = new Dictionary<string, NamedAudioSegment>();
         private Dictionary<string, Music> musicDict = new Dictionary<string, Music>();
-        private ObjectPool<GameObject> audioPoolPlayer = new ObjectPool<GameObject>(OnCreatePlayerAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
-        private ObjectPool<GameObject> audioPoolPositional = new ObjectPool<GameObject>(OnCreatePositionalAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
-
-        private Dictionary<GameObject, float> audioTimerPlayer = new Dictionary<GameObject, float>();
-        private Dictionary<GameObject, float> audioTimerPositional = new Dictionary<GameObject, float>();
+        private ObjectPool<GameObject> audioPool = new ObjectPool<GameObject>(OnCreateAudio, OnTakeAudio, OnReleaseAudio, OnDestroyAudio);
+        
+        private Dictionary<GameObject, float> audioPoolTimer = new Dictionary<GameObject, float>();
         private Dictionary<AudioGroup, float> sequenceResetTimer = new Dictionary<AudioGroup, float>();
 
         private GameObject activeMusicObject = null;
@@ -73,36 +71,21 @@ namespace Kraymus.AudioManager
                     musicTimers.RemoveAt(i);
                     TimerType timerType = musicTimer.GetTimerType();
                     if (timerType == TimerType.FadeOut)
-                        audioPoolPlayer.Release(musicTimer.GetAudioObject());
+                        audioPool.Release(musicTimer.GetAudioObject());
                 }
             }
 
-            if (audioTimerPlayer.Count > 0)
+            if (audioPoolTimer.Count > 0)
             {
-                var audioTimerPlayerKeys = audioTimerPlayer.Keys.ToList();
-                for (int i = audioTimerPlayerKeys.Count - 1; i >= 0; i--)
+                var audioPoolTimerKeys = audioPoolTimer.Keys.ToList();
+                for (int i = audioPoolTimerKeys.Count - 1; i >= 0; i--)
                 {
-                    var key = audioTimerPlayerKeys[i];
-                    audioTimerPlayer[key] -= Time.deltaTime;
-                    if (audioTimerPlayer[key] <= 0)
+                    var key = audioPoolTimerKeys[i];
+                    audioPoolTimer[key] -= Time.deltaTime;
+                    if (audioPoolTimer[key] <= 0)
                     {
-                        audioPoolPlayer.Release(key);
-                        audioTimerPlayer.Remove(key);
-                    }
-                }
-            }
-
-            if (audioTimerPositional.Count > 0)
-            {
-                var audioTimerPositionalKeys = audioTimerPositional.Keys.ToList();
-                for (int i = audioTimerPositionalKeys.Count - 1; i >= 0; i--)
-                {
-                    var key = audioTimerPositionalKeys[i];
-                    audioTimerPositional[key] -= Time.deltaTime;
-                    if (audioTimerPositional[key] <= 0)
-                    {
-                        audioPoolPositional.Release(key);
-                        audioTimerPositional.Remove(key);
+                        audioPool.Release(key);
+                        audioPoolTimer.Remove(key);
                     }
                 }
             }
@@ -198,19 +181,19 @@ namespace Kraymus.AudioManager
 
         public void Play(AudioCategory audioCatefory, string audioName)
         {
-            Play(audioCatefory, audioName, playerTransform.position, playerTransform, audioPoolPlayer, audioTimerPlayer);
+            Play(audioCatefory, audioName, playerTransform.position, playerTransform);
         }
 
         public void Play(AudioCategory audioCategory, string audioName, Vector3 position)
         {
-            Play(audioCategory, audioName, position, transform, audioPoolPositional, audioTimerPositional);
+            Play(audioCategory, audioName, position, transform);
         }
 
-        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, Dictionary<GameObject, float> timer)
+        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent)
         {
             if (audioCategory == AudioCategory.Music)
             {
-                PlayMusic(audioName, position, parent, pool);
+                PlayMusic(audioName, position, parent);
             }
             else
             {
@@ -227,26 +210,26 @@ namespace Kraymus.AudioManager
 
                 if (audioSegment != null)
                 {
-                    GameObject audioObject = pool.Get();
+                    GameObject audioObject = audioPool.Get();
                     audioObject.transform.position = position;
                     audioObject.transform.parent = parent;
                     PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
-                    timer.Add(audioObject, audioSegment.GetAudioClip().length);
+                    audioPoolTimer.Add(audioObject, audioSegment.GetAudioClip().length);
                 }
             }
         }
 
         public void PlayMusic(string audioName, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, playerTransform.position, playerTransform, audioPoolPlayer, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, playerTransform.position, playerTransform, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
         public void PlayMusic(string audioName, Vector3 position, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, position, transform, audioPoolPlayer, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, position, transform, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
-        private void PlayMusic(string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        private void PlayMusic(string audioName, Vector3 position, Transform parent, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
             Music m = GetMusic(audioName);
             if (m != null)
@@ -259,11 +242,11 @@ namespace Kraymus.AudioManager
                     }
                     else
                     {
-                        pool.Release(activeMusicObject);
+                        audioPool.Release(activeMusicObject);
                     }
                 }
 
-                activeMusicObject = pool.Get();
+                activeMusicObject = audioPool.Get();
 
                 activeMusicObject.transform.position = position;
                 activeMusicObject.transform.parent = parent;
@@ -384,15 +367,7 @@ namespace Kraymus.AudioManager
         }
 
         #region PoolFunctions
-        private static GameObject OnCreatePlayerAudio()
-        {
-            GameObject soundGameObject = new GameObject("Audio");
-            soundGameObject.AddComponent<AudioSource>();
-
-            return soundGameObject;
-        }
-
-        private static GameObject OnCreatePositionalAudio()
+        private static GameObject OnCreateAudio()
         {
             GameObject soundGameObject = new GameObject("Audio");
             soundGameObject.AddComponent<AudioSource>();

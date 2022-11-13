@@ -425,7 +425,14 @@ MonoBehaviour:
     type: 1
     resetTime: 0
     currentSequence: 0
-  audioSegments: []
+  audioSegments:
+  - audioName: Segment 1
+    audioSegment:
+      audioClip: {fileID: 8300000, guid: 108cfe08cbb47f84ba455c82d02c1146, type: 3}
+      volume: 1
+      pitch: 1
+      randomVolume: 0
+      randomPitch: 0
   music:
   - name: Music 1
     audioClip: {fileID: 8300000, guid: b911662f2b94547e8a834cff9d26a788, type: 3}
