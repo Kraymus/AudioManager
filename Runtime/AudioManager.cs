@@ -22,11 +22,11 @@ namespace Kraymus.AudioManager
         [SerializeField, Range(0, 1)]
         private float masterVolume = 1f;
         [SerializeField]
-        private List<AudioGroup> audioGroups;
+        private List<AudioGroup> audioGroups = new List<AudioGroup>();
         [SerializeField]
-        private List<NamedAudioSegment> audioSegments;
+        private List<NamedAudioSegment> audioSegments = new List<NamedAudioSegment>();
         [SerializeField]
-        private List<Music> music;
+        private List<Music> music = new List<Music>();
 
 #if UNITY_EDITOR
         private AudioSource editorAudioSource;
