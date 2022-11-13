@@ -11,7 +11,7 @@ namespace Kraymus.AudioManager
         {
             VisualElement container = new VisualElement();
 
-            container.Add(new PropertyField(property.FindPropertyRelative("audioName")));
+            container.Add(new PropertyField(property.FindPropertyRelative("name")));
             container.Add(new PropertyField(property.FindPropertyRelative("audioSegment")));
 
             return container;
