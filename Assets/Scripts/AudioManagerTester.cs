@@ -6,6 +6,11 @@ using UnityEngine;
 public class AudioManagerTester : MonoBehaviour
 {
     // Update is called once per frame
+    private void Start()
+    {
+
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -22,7 +27,12 @@ public class AudioManagerTester : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            AudioManager.Instance.Play(AudioCategory.Music, "Music 1", Vector3.zero);
+            AudioManager.Instance.PlayMusic("Music 1", 5, 5);
+            Debug.Log("press");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            AudioManager.Instance.FadeOutMusic(5);
         }
     }
 }

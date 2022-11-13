@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
 
+// Tell if a music is fading in when it's asked to fade out
+
 namespace Kraymus.AudioManager
 {
     public enum AudioCategory
@@ -40,9 +42,8 @@ namespace Kraymus.AudioManager
         private Dictionary<GameObject, float> audioTimerPositional = new Dictionary<GameObject, float>();
         private Dictionary<AudioGroup, float> sequenceResetTimer = new Dictionary<AudioGroup, float>();
 
-        private GameObject musicObject1;
-        private GameObject musicObject2;
-        private int activeAudioSource = -1;
+        private GameObject activeMusicObject = null;
+        private List<MusicTimer> musicTimers = new List<MusicTimer>();
 
         private static AudioManager instance = null;
         public static AudioManager Instance
@@ -57,13 +58,25 @@ namespace Kraymus.AudioManager
             }
         }
 
-        private void Start()
+        private void Awake()
         {
             BuildAudioDicts();
         }
 
         private void Update()
         {
+            for (int i = musicTimers.Count - 1; i >= 0; i--)
+            {
+                MusicTimer musicTimer = musicTimers[i];
+                if (musicTimer.Tick(Time.deltaTime))
+                {
+                    musicTimers.RemoveAt(i);
+                    TimerType timerType = musicTimer.GetTimerType();
+                    if (timerType == TimerType.FadeOut)
+                        audioPoolPlayer.Release(musicTimer.GetAudioObject());
+                }
+            }
+
             if (audioTimerPlayer.Count > 0)
             {
                 var audioTimerPlayerKeys = audioTimerPlayer.Keys.ToList();
@@ -156,9 +169,35 @@ namespace Kraymus.AudioManager
         }
 #endif
 
+        public void FadeOutMusic(float time)
+        {
+            if (activeMusicObject != null)
+            {
+                if (!ReverseExistingMusicTimer(activeMusicObject))
+                {
+                    MusicTimer musicTimer = new MusicTimer(TimerType.FadeOut, time, activeMusicObject);
+                    musicTimers.Add(musicTimer);
+                }
+                activeMusicObject = null;
+            }
+        }
+
+        // returns if it exists or not
+        private bool ReverseExistingMusicTimer(GameObject musicObject)
+        {
+            foreach (MusicTimer musicTimer in musicTimers)
+            {
+                if (musicTimer.GetAudioObject() == musicObject)
+                {
+                    musicTimer.Reverse();
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void Play(AudioCategory audioCatefory, string audioName)
         {
-
             Play(audioCatefory, audioName, playerTransform.position, playerTransform, audioPoolPlayer, audioTimerPlayer);
         }
 
@@ -171,29 +210,7 @@ namespace Kraymus.AudioManager
         {
             if (audioCategory == AudioCategory.Music)
             {
-                Music m = GetMusic(audioName);
-                if (m != null)
-                {
-                    GameObject audioObject;
-                    if (activeAudioSource != 0)
-                    {
-                        // TODO: get the correct pool;
-                        activeAudioSource = 0;
-                        if (musicObject1 == null)
-                            musicObject1 = pool.Get();
-                        audioObject = musicObject1;
-                    }
-                    else
-                    {
-                        activeAudioSource = 1;
-                        if (musicObject2 == null)
-                            musicObject2 = pool.Get();
-                        audioObject = musicObject2;
-                    }
-                    audioObject.transform.position = position;
-                    audioObject.transform.parent = parent;
-                    PlayMusic(m, audioObject.GetComponent<AudioSource>());
-                }
+                PlayMusic(audioName, position, parent, pool);
             }
             else
             {
@@ -215,6 +232,45 @@ namespace Kraymus.AudioManager
                     audioObject.transform.parent = parent;
                     PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
                     timer.Add(audioObject, audioSegment.GetAudioClip().length);
+                }
+            }
+        }
+
+        public void PlayMusic(string audioName, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        {
+            PlayMusic(audioName, playerTransform.position, playerTransform, audioPoolPlayer, fadeOutTime, fadeInTime, fadeInDelay);
+        }
+
+        public void PlayMusic(string audioName, Vector3 position, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        {
+            PlayMusic(audioName, position, transform, audioPoolPlayer, fadeOutTime, fadeInTime, fadeInDelay);
+        }
+
+        private void PlayMusic(string audioName, Vector3 position, Transform parent, ObjectPool<GameObject> pool, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        {
+            Music m = GetMusic(audioName);
+            if (m != null)
+            {
+                if (activeMusicObject != null)
+                {
+                    if (fadeOutTime > 0)
+                    {
+                        FadeOutMusic(fadeOutTime);
+                    }
+                    else
+                    {
+                        pool.Release(activeMusicObject);
+                    }
+                }
+
+                activeMusicObject = pool.Get();
+
+                activeMusicObject.transform.position = position;
+                activeMusicObject.transform.parent = parent;
+                PlayMusic(m, activeMusicObject.GetComponent<AudioSource>());
+                if (fadeInTime > 0f)
+                {
+                    musicTimers.Add(new MusicTimer(TimerType.FadeIn, fadeInTime, activeMusicObject, fadeInDelay));
                 }
             }
         }

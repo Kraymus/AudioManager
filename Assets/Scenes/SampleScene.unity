@@ -375,7 +375,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e835032e0d889674d927e2731be4b81e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 963194228}
   masterVolume: 1
   audioGroups:
   - name: Audio Group 1
@@ -458,11 +458,11 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: dcaa49c56a6674229829c944cf6ff2f8, type: 3}
+  m_audioClip: {fileID: 8300000, guid: b911662f2b94547e8a834cff9d26a788, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.268
+  m_Volume: 0.227
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
