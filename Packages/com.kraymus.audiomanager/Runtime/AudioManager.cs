@@ -40,6 +40,10 @@ namespace Kraymus.AudioManager
         private Dictionary<GameObject, float> audioTimerPositional = new Dictionary<GameObject, float>();
         private Dictionary<AudioGroup, float> sequenceResetTimer = new Dictionary<AudioGroup, float>();
 
+        private GameObject musicObject1;
+        private GameObject musicObject2;
+        private int activeAudioSource = -1;
+
         private static AudioManager instance = null;
         public static AudioManager Instance
         {
@@ -170,12 +174,25 @@ namespace Kraymus.AudioManager
                 Music m = GetMusic(audioName);
                 if (m != null)
                 {
-                    PlayMusic(m, editorAudioSource);
-                    GameObject audioObject = pool.Get();
+                    GameObject audioObject;
+                    if (activeAudioSource != 0)
+                    {
+                        // TODO: get the correct pool;
+                        activeAudioSource = 0;
+                        if (musicObject1 == null)
+                            musicObject1 = pool.Get();
+                        audioObject = musicObject1;
+                    }
+                    else
+                    {
+                        activeAudioSource = 1;
+                        if (musicObject2 == null)
+                            musicObject2 = pool.Get();
+                        audioObject = musicObject2;
+                    }
                     audioObject.transform.position = position;
                     audioObject.transform.parent = parent;
                     PlayMusic(m, audioObject.GetComponent<AudioSource>());
-                    timer.Add(audioObject, m.GetAudioClip().length);
                 }
             }
             else
@@ -282,6 +299,7 @@ namespace Kraymus.AudioManager
             float finalPitch = Random.Range(pitch - randomPitch, pitch + randomPitch);
             audioSource.volume = finalVolume;
             audioSource.pitch = finalPitch;
+            audioSource.loop = false;
             audioSource.Play();
         }
 
@@ -290,6 +308,7 @@ namespace Kraymus.AudioManager
             audioSource.clip = m.GetAudioClip();
             audioSource.volume = m.GetVolume();
             audioSource.pitch = 1f;
+            audioSource.loop = true;
             audioSource.Play();
         }
 

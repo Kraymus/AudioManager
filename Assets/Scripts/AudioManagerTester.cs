@@ -20,5 +20,9 @@ public class AudioManagerTester : MonoBehaviour
         {
             AudioManager.Instance.Play(AudioCategory.Segment, "Segment 1", Vector3.zero);
         }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            AudioManager.Instance.Play(AudioCategory.Music, "Music 1", Vector3.zero);
+        }
     }
 }
