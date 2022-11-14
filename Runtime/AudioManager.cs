@@ -227,19 +227,19 @@ namespace Kraymus.AudioManager
 
         public void Play(AudioCategory audioCatefory, string audioName)
         {
-            Play(audioCatefory, audioName, playerTransform.position, playerTransform);
+            Play(audioCatefory, audioName, playerTransform.position, playerTransform, audioSourcePlayerSettings);
         }
 
         public void Play(AudioCategory audioCategory, string audioName, Vector3 position)
         {
-            Play(audioCategory, audioName, position, transform);
+            Play(audioCategory, audioName, position, transform, audioSourcePositionalSettings);
         }
 
-        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent)
+        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent, AudioSource audioSourceSettings)
         {
             if (audioCategory == AudioCategory.Music)
             {
-                PlayMusic(audioName, position, parent);
+                PlayMusic(audioName, position, parent, audioSourceSettings);
             }
             else
             {
@@ -259,7 +259,9 @@ namespace Kraymus.AudioManager
                     GameObject audioObject = audioPool.Get();
                     audioObject.transform.position = position;
                     audioObject.transform.parent = parent;
-                    PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
+                    AudioSource audioSource = audioObject.GetComponent<AudioSource>();
+                    SetAudioSourceSettings(audioSource, audioSourceSettings);
+                    PlayAudioSegment(audioSegment, volumeModifier, audioSource);
                     audioPoolTimer.Add(audioObject, audioSegment.GetAudioClip().length);
                 }
             }
@@ -267,15 +269,15 @@ namespace Kraymus.AudioManager
 
         public void PlayMusic(string audioName, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, playerTransform.position, playerTransform, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, playerTransform.position, playerTransform, audioSourcePlayerSettings, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
         public void PlayMusic(string audioName, Vector3 position, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, position, transform, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, position, transform, audioSourcePositionalSettings, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
-        private void PlayMusic(string audioName, Vector3 position, Transform parent, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        private void PlayMusic(string audioName, Vector3 position, Transform parent, AudioSource audioSourceSettings, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
             Music m = GetMusic(audioName);
             if (m != null)
@@ -295,12 +297,31 @@ namespace Kraymus.AudioManager
                 activeMusicObject = audioPool.Get();
                 activeMusicObject.transform.position = position;
                 activeMusicObject.transform.parent = parent;
-                PlayMusic(m, activeMusicObject.GetComponent<AudioSource>());
+                AudioSource audioSource = activeMusicObject.GetComponent<AudioSource>();
+                SetAudioSourceSettings(audioSource, audioSourceSettings);
+                PlayMusic(m, audioSource);
                 if (fadeInTime > 0f)
                 {
                     musicTimers.Add(new MusicTimer(TimerType.FadeIn, fadeInTime, activeMusicObject, fadeInDelay));
                 }
             }
+        }
+
+        private void SetAudioSourceSettings(AudioSource toAudioSource, AudioSource fromAudioSource)
+        {
+            toAudioSource.bypassEffects = fromAudioSource.bypassEffects;
+            toAudioSource.bypassListenerEffects = fromAudioSource.bypassListenerEffects;
+            toAudioSource.bypassReverbZones = fromAudioSource.bypassReverbZones;
+            toAudioSource.playOnAwake = fromAudioSource.playOnAwake;
+            toAudioSource.priority = fromAudioSource.priority;
+            toAudioSource.panStereo = fromAudioSource.panStereo;
+            toAudioSource.spatialBlend = fromAudioSource.spatialBlend;
+            toAudioSource.reverbZoneMix = fromAudioSource.reverbZoneMix;
+            toAudioSource.dopplerLevel = fromAudioSource.dopplerLevel;
+            toAudioSource.spread = fromAudioSource.spread;
+            toAudioSource.rolloffMode = fromAudioSource.rolloffMode;
+            toAudioSource.minDistance = fromAudioSource.minDistance;
+            toAudioSource.maxDistance = fromAudioSource.maxDistance;
         }
 
         // index is specifically for the editor, so that it can choose the segment to play
