@@ -162,6 +162,36 @@ namespace Kraymus.AudioManager
         {
             editorAudioSource.Stop();
         }
+
+        public List<string> GetAudioGroupNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (AudioGroup group in audioGroups)
+                stringsList.Add(group.GetName());
+
+            return stringsList;
+        }
+
+        public List<string> GetAudioSegmentNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (NamedAudioSegment segment in audioSegments)
+                stringsList.Add(segment.GetName());
+
+            return stringsList;
+        }
+
+        public List<string> GetMusicNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (Music m in music)
+                stringsList.Add(m.GetName());
+
+            return stringsList;
+        }
 #endif
 
         public void FadeOutMusic(float time)
@@ -375,6 +405,14 @@ namespace Kraymus.AudioManager
             musicDict.Clear();
             foreach (Music m in music)
                 musicDict.Add(m.GetName(), m);
+
+            // TODO: Revisit
+            if (Application.isPlaying)
+            {
+                audioGroups.Clear();
+                audioSegments.Clear();
+                music.Clear();
+            }
         }
 
         #region PoolFunctions

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -296,6 +297,7 @@ namespace Kraymus.AudioManager
             subPageElement.Add(backButton);
 
             TextField nameTextField = new TextField();
+            nameTextField.RegisterValueChangedCallback(SubPageNameChanged);
             subPageElement.Add(nameTextField);
 
             HelpBox helpBox = new HelpBox("The Audio Group name is used as strings in scripts to play sounds. \nBe careful when you change the name!", HelpBoxMessageType.Warning);
@@ -337,6 +339,13 @@ namespace Kraymus.AudioManager
             subPageElement.Add(listView);
 
             return subPageElement;
+        }
+
+        private void SubPageNameChanged(ChangeEvent<string> evt)
+        {
+            int count = AudioManager.Instance.GetAudioGroupNames().Where(s => s == evt.newValue).Count();
+            if (count > 1)
+                Debug.LogWarning(evt.newValue + " is a duplicate Audio Group name");
         }
 
         private ListView MakeAudioGroupSegmentListView()
