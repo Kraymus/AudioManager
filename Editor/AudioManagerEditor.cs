@@ -47,6 +47,8 @@ namespace Kraymus.AudioManager
 
             // Audio Groups Section
 
+            CreateSeparator(mainPageElement, "Audio Groups");
+
             Toggle toggle = new Toggle("Enable Deleting");
             toggle.RegisterValueChangedCallback(OnToggleChanged);
             mainPageElement.Add(toggle);
@@ -66,6 +68,10 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(audioGroupsListView);
 
             // Audio Segments Section
+
+            CreateSeparator(mainPageElement, "Audio Segments");
+
+
             SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
             Button addAudioSegmentButton = new Button(() =>
             {
@@ -83,6 +89,10 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(audioSegmentsListView);
 
             // Music Section
+
+            CreateSeparator(mainPageElement, "Music");
+
+
             SerializedProperty musicProperty = serializedObject.FindProperty("music");
 
             Button addMusicButton = new Button(() =>
@@ -107,6 +117,23 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(musicListView);
 
             return mainPageElement;
+        }
+
+        private static void CreateSeparator(VisualElement mainPageElement, string title)
+        {
+            VisualElement separator = new VisualElement();
+            separator.style.height = 1;
+            separator.style.backgroundColor = new StyleColor(Color.gray);
+            separator.style.marginTop = new StyleLength(6);
+            separator.style.marginBottom = new StyleLength(10);
+            mainPageElement.Add(separator);
+
+            VisualElement label = new Label(title);
+            label.style.alignSelf = Align.Center;
+            label.style.fontSize = new StyleLength(14);
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.marginBottom = new StyleLength(6);
+            mainPageElement.Add(label);
         }
 
         private ListView MakeAudioGroupListView(SerializedProperty audioGroupsProperty)
@@ -178,7 +205,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0).ElementAt(1) as PropertyField).BindProperty(audioGroupsProperty.GetArrayElementAtIndex(index).FindPropertyRelative("volume"));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Audio Groups", 50, bindingPath: audioGroupsProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 50, bindingPath: audioGroupsProperty.propertyPath);
         }
 
         private ListView MakeAudioSegmentListView(SerializedProperty audioSegmentsProperty)
@@ -220,7 +247,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0) as PropertyField).BindProperty(audioSegmentsProperty.GetArrayElementAtIndex(index));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400, audioSegmentsProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 170, 400, audioSegmentsProperty.propertyPath);
         }
 
         private ListView MakeMusicListView(SerializedProperty musicProperty)
@@ -262,7 +289,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0) as PropertyField).BindProperty(musicProperty.GetArrayElementAtIndex(index));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Music", 110, 400, musicProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 110, 400, musicProperty.propertyPath);
         }
 
 
