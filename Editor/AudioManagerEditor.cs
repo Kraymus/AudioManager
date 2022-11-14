@@ -304,9 +304,6 @@ namespace Kraymus.AudioManager
             nameTextField.RegisterValueChangedCallback(SubPageNameChanged);
             subPageElement.Add(nameTextField);
 
-            HelpBox helpBox = new HelpBox("The Audio Group name is used as strings in scripts to play sounds. \nBe careful when you change the name!", HelpBoxMessageType.Warning);
-            subPageElement.Add(helpBox);
-
             PropertyField volumeField = new PropertyField();
             subPageElement.Add(volumeField);
 
