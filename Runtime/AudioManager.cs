@@ -19,6 +19,10 @@ namespace Kraymus.AudioManager
     {
         [SerializeField]
         private Transform playerTransform; // Used as the parent for the player audio pool objects
+        [SerializeField]
+        private AudioSource audioSourcePositionalSettings;
+        [SerializeField]
+        private AudioSource audioSourcePlayerSettings;
         [SerializeField, Range(0, 1)]
         private float masterVolume = 1f;
         [SerializeField]

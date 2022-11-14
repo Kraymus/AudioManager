@@ -37,9 +37,13 @@ namespace Kraymus.AudioManager
             // General Section
 
             SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
-            PropertyField playerTransformField = new PropertyField();
-            playerTransformField.BindProperty(playerTransformProperty);
-            mainPageElement.Add(playerTransformField);
+            mainPageElement.Add(new PropertyField(playerTransformProperty));
+
+            SerializedProperty audioPositionalSettings = serializedObject.FindProperty("audioSourcePositionalSettings");
+            mainPageElement.Add(new PropertyField(audioPositionalSettings));
+
+            SerializedProperty audioPlayerSettings = serializedObject.FindProperty("audioSourcePlayerSettings");
+            mainPageElement.Add(new PropertyField(audioPlayerSettings));
 
             // Audio Groups Section
 
