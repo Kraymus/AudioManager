@@ -442,10 +442,10 @@ namespace Kraymus.AudioManager
 
             SerializedProperty audioGroupProperty = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(index);
             (subPage.ElementAt(1) as TextField).BindProperty(audioGroupProperty.FindPropertyRelative("name"));
-            (subPage.ElementAt(3) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("volume"));
-            (subPage.ElementAt(4) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("type"));
-            (subPage.ElementAt(5) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("resetTime"));
-            (subPage.ElementAt(8) as ListView).BindProperty(audioGroupProperty.FindPropertyRelative("segments"));
+            (subPage.ElementAt(2) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("volume"));
+            (subPage.ElementAt(3) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("type"));
+            (subPage.ElementAt(4) as PropertyField).BindProperty(audioGroupProperty.FindPropertyRelative("resetTime"));
+            (subPage.ElementAt(7) as ListView).BindProperty(audioGroupProperty.FindPropertyRelative("segments"));
         }
 
         private void GoToMainPage()
