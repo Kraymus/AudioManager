@@ -45,6 +45,12 @@ namespace Kraymus.AudioManager
             SerializedProperty audioPlayerSettings = serializedObject.FindProperty("audioSourcePlayerSettings");
             mainPageElement.Add(new PropertyField(audioPlayerSettings));
 
+            SerializedProperty musicMixer = serializedObject.FindProperty("musicAudioMixer");
+            mainPageElement.Add(new PropertyField(musicMixer));
+
+            SerializedProperty sfxMixer = serializedObject.FindProperty("sfxAudioMixer");
+            mainPageElement.Add(new PropertyField(sfxMixer));
+
             // Audio Groups Section
 
             CreateSeparator(mainPageElement, "Audio Groups");

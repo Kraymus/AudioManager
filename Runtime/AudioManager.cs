@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Pool;
 
 // Tell if a music is fading in when it's asked to fade out
@@ -23,8 +24,10 @@ namespace Kraymus.AudioManager
         private AudioSource audioSourcePositionalSettings;
         [SerializeField]
         private AudioSource audioSourcePlayerSettings;
-        [SerializeField, Range(0, 1)]
-        private float masterVolume = 1f;
+        [SerializeField]
+        private AudioMixerGroup musicAudioMixer;
+        [SerializeField]
+        private AudioMixerGroup sfxAudioMixer;
         [SerializeField]
         private List<AudioGroup> audioGroups = new List<AudioGroup>();
         [SerializeField]
@@ -260,7 +263,7 @@ namespace Kraymus.AudioManager
                     audioObject.transform.position = position;
                     audioObject.transform.parent = parent;
                     AudioSource audioSource = audioObject.GetComponent<AudioSource>();
-                    SetAudioSourceSettings(audioSource, audioSourceSettings);
+                    SetAudioSourceSettings(audioSource, audioSourceSettings, sfxAudioMixer);
                     PlayAudioSegment(audioSegment, volumeModifier, audioSource);
                     audioPoolTimer.Add(audioObject, audioSegment.GetAudioClip().length);
                 }
@@ -298,7 +301,7 @@ namespace Kraymus.AudioManager
                 activeMusicObject.transform.position = position;
                 activeMusicObject.transform.parent = parent;
                 AudioSource audioSource = activeMusicObject.GetComponent<AudioSource>();
-                SetAudioSourceSettings(audioSource, audioSourceSettings);
+                SetAudioSourceSettings(audioSource, audioSourceSettings, musicAudioMixer);
                 PlayMusic(m, audioSource);
                 if (fadeInTime > 0f)
                 {
@@ -307,8 +310,9 @@ namespace Kraymus.AudioManager
             }
         }
 
-        private void SetAudioSourceSettings(AudioSource toAudioSource, AudioSource fromAudioSource)
+        private void SetAudioSourceSettings(AudioSource toAudioSource, AudioSource fromAudioSource, AudioMixerGroup audioMixerGroup)
         {
+            toAudioSource.outputAudioMixerGroup = audioMixerGroup;
             toAudioSource.bypassEffects = fromAudioSource.bypassEffects;
             toAudioSource.bypassListenerEffects = fromAudioSource.bypassListenerEffects;
             toAudioSource.bypassReverbZones = fromAudioSource.bypassReverbZones;
