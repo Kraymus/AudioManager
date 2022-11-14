@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Pool;
 
 // Tell if a music is fading in when it's asked to fade out
@@ -19,8 +20,14 @@ namespace Kraymus.AudioManager
     {
         [SerializeField]
         private Transform playerTransform; // Used as the parent for the player audio pool objects
-        [SerializeField, Range(0, 1)]
-        private float masterVolume = 1f;
+        [SerializeField]
+        private AudioSource audioSourcePositionalSettings;
+        [SerializeField]
+        private AudioSource audioSourcePlayerSettings;
+        [SerializeField]
+        private AudioMixerGroup musicAudioMixer;
+        [SerializeField]
+        private AudioMixerGroup sfxAudioMixer;
         [SerializeField]
         private List<AudioGroup> audioGroups = new List<AudioGroup>();
         [SerializeField]
@@ -162,6 +169,36 @@ namespace Kraymus.AudioManager
         {
             editorAudioSource.Stop();
         }
+
+        public List<string> GetAudioGroupNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (AudioGroup group in audioGroups)
+                stringsList.Add(group.GetName());
+
+            return stringsList;
+        }
+
+        public List<string> GetAudioSegmentNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (NamedAudioSegment segment in audioSegments)
+                stringsList.Add(segment.GetName());
+
+            return stringsList;
+        }
+
+        public List<string> GetMusicNames()
+        {
+            List<string> stringsList = new List<string>();
+
+            foreach (Music m in music)
+                stringsList.Add(m.GetName());
+
+            return stringsList;
+        }
 #endif
 
         public void FadeOutMusic(float time)
@@ -193,19 +230,19 @@ namespace Kraymus.AudioManager
 
         public void Play(AudioCategory audioCatefory, string audioName)
         {
-            Play(audioCatefory, audioName, playerTransform.position, playerTransform);
+            Play(audioCatefory, audioName, playerTransform.position, playerTransform, audioSourcePlayerSettings);
         }
 
         public void Play(AudioCategory audioCategory, string audioName, Vector3 position)
         {
-            Play(audioCategory, audioName, position, transform);
+            Play(audioCategory, audioName, position, transform, audioSourcePositionalSettings);
         }
 
-        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent)
+        private void Play(AudioCategory audioCategory, string audioName, Vector3 position, Transform parent, AudioSource audioSourceSettings)
         {
             if (audioCategory == AudioCategory.Music)
             {
-                PlayMusic(audioName, position, parent);
+                PlayMusic(audioName, position, parent, audioSourceSettings);
             }
             else
             {
@@ -225,7 +262,9 @@ namespace Kraymus.AudioManager
                     GameObject audioObject = audioPool.Get();
                     audioObject.transform.position = position;
                     audioObject.transform.parent = parent;
-                    PlayAudioSegment(audioSegment, volumeModifier, audioObject.GetComponent<AudioSource>());
+                    AudioSource audioSource = audioObject.GetComponent<AudioSource>();
+                    SetAudioSourceSettings(audioSource, audioSourceSettings, sfxAudioMixer);
+                    PlayAudioSegment(audioSegment, volumeModifier, audioSource);
                     audioPoolTimer.Add(audioObject, audioSegment.GetAudioClip().length);
                 }
             }
@@ -233,15 +272,15 @@ namespace Kraymus.AudioManager
 
         public void PlayMusic(string audioName, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, playerTransform.position, playerTransform, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, playerTransform.position, playerTransform, audioSourcePlayerSettings, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
         public void PlayMusic(string audioName, Vector3 position, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
-            PlayMusic(audioName, position, transform, fadeOutTime, fadeInTime, fadeInDelay);
+            PlayMusic(audioName, position, transform, audioSourcePositionalSettings, fadeOutTime, fadeInTime, fadeInDelay);
         }
 
-        private void PlayMusic(string audioName, Vector3 position, Transform parent, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
+        private void PlayMusic(string audioName, Vector3 position, Transform parent, AudioSource audioSourceSettings, float fadeOutTime = 0f, float fadeInTime = 0f, float fadeInDelay = 0f)
         {
             Music m = GetMusic(audioName);
             if (m != null)
@@ -261,12 +300,32 @@ namespace Kraymus.AudioManager
                 activeMusicObject = audioPool.Get();
                 activeMusicObject.transform.position = position;
                 activeMusicObject.transform.parent = parent;
-                PlayMusic(m, activeMusicObject.GetComponent<AudioSource>());
+                AudioSource audioSource = activeMusicObject.GetComponent<AudioSource>();
+                SetAudioSourceSettings(audioSource, audioSourceSettings, musicAudioMixer);
+                PlayMusic(m, audioSource);
                 if (fadeInTime > 0f)
                 {
                     musicTimers.Add(new MusicTimer(TimerType.FadeIn, fadeInTime, activeMusicObject, fadeInDelay));
                 }
             }
+        }
+
+        private void SetAudioSourceSettings(AudioSource toAudioSource, AudioSource fromAudioSource, AudioMixerGroup audioMixerGroup)
+        {
+            toAudioSource.outputAudioMixerGroup = audioMixerGroup;
+            toAudioSource.bypassEffects = fromAudioSource.bypassEffects;
+            toAudioSource.bypassListenerEffects = fromAudioSource.bypassListenerEffects;
+            toAudioSource.bypassReverbZones = fromAudioSource.bypassReverbZones;
+            toAudioSource.playOnAwake = fromAudioSource.playOnAwake;
+            toAudioSource.priority = fromAudioSource.priority;
+            toAudioSource.panStereo = fromAudioSource.panStereo;
+            toAudioSource.spatialBlend = fromAudioSource.spatialBlend;
+            toAudioSource.reverbZoneMix = fromAudioSource.reverbZoneMix;
+            toAudioSource.dopplerLevel = fromAudioSource.dopplerLevel;
+            toAudioSource.spread = fromAudioSource.spread;
+            toAudioSource.rolloffMode = fromAudioSource.rolloffMode;
+            toAudioSource.minDistance = fromAudioSource.minDistance;
+            toAudioSource.maxDistance = fromAudioSource.maxDistance;
         }
 
         // index is specifically for the editor, so that it can choose the segment to play
@@ -375,6 +434,14 @@ namespace Kraymus.AudioManager
             musicDict.Clear();
             foreach (Music m in music)
                 musicDict.Add(m.GetName(), m);
+
+            // TODO: Revisit
+            if (Application.isPlaying)
+            {
+                audioGroups.Clear();
+                audioSegments.Clear();
+                music.Clear();
+            }
         }
 
         #region PoolFunctions

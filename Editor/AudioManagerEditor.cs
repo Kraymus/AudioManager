@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -36,11 +37,23 @@ namespace Kraymus.AudioManager
             // General Section
 
             SerializedProperty playerTransformProperty = serializedObject.FindProperty("playerTransform");
-            PropertyField playerTransformField = new PropertyField();
-            playerTransformField.BindProperty(playerTransformProperty);
-            mainPageElement.Add(playerTransformField);
+            mainPageElement.Add(new PropertyField(playerTransformProperty));
+
+            SerializedProperty audioPositionalSettings = serializedObject.FindProperty("audioSourcePositionalSettings");
+            mainPageElement.Add(new PropertyField(audioPositionalSettings));
+
+            SerializedProperty audioPlayerSettings = serializedObject.FindProperty("audioSourcePlayerSettings");
+            mainPageElement.Add(new PropertyField(audioPlayerSettings));
+
+            SerializedProperty musicMixer = serializedObject.FindProperty("musicAudioMixer");
+            mainPageElement.Add(new PropertyField(musicMixer));
+
+            SerializedProperty sfxMixer = serializedObject.FindProperty("sfxAudioMixer");
+            mainPageElement.Add(new PropertyField(sfxMixer));
 
             // Audio Groups Section
+
+            CreateSeparator(mainPageElement, "Audio Groups");
 
             Toggle toggle = new Toggle("Enable Deleting");
             toggle.RegisterValueChangedCallback(OnToggleChanged);
@@ -62,6 +75,9 @@ namespace Kraymus.AudioManager
 
             // Audio Segments Section
 
+            CreateSeparator(mainPageElement, "Audio Segments");
+
+
             SerializedProperty audioSegmentsProperty = serializedObject.FindProperty("audioSegments");
             Button addAudioSegmentButton = new Button(() =>
             {
@@ -79,6 +95,10 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(audioSegmentsListView);
 
             // Music Section
+
+            CreateSeparator(mainPageElement, "Music");
+
+
             SerializedProperty musicProperty = serializedObject.FindProperty("music");
 
             Button addMusicButton = new Button(() =>
@@ -103,6 +123,23 @@ namespace Kraymus.AudioManager
             mainPageElement.Add(musicListView);
 
             return mainPageElement;
+        }
+
+        private static void CreateSeparator(VisualElement mainPageElement, string title)
+        {
+            VisualElement separator = new VisualElement();
+            separator.style.height = 1;
+            separator.style.backgroundColor = new StyleColor(Color.gray);
+            separator.style.marginTop = new StyleLength(6);
+            separator.style.marginBottom = new StyleLength(10);
+            mainPageElement.Add(separator);
+
+            VisualElement label = new Label(title);
+            label.style.alignSelf = Align.Center;
+            label.style.fontSize = new StyleLength(14);
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.marginBottom = new StyleLength(6);
+            mainPageElement.Add(label);
         }
 
         private ListView MakeAudioGroupListView(SerializedProperty audioGroupsProperty)
@@ -144,10 +181,17 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    if (enableDeleting)
+                    if (Application.isPlaying)
                     {
-                        audioGroupsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                        serializedObject.ApplyModifiedProperties();
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        if (enableDeleting)
+                        {
+                            audioGroupsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                            serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 });
                 deleteButton.text = "Delete";
@@ -167,7 +211,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0).ElementAt(1) as PropertyField).BindProperty(audioGroupsProperty.GetArrayElementAtIndex(index).FindPropertyRelative("volume"));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Audio Groups", 50, bindingPath: audioGroupsProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 50, bindingPath: audioGroupsProperty.propertyPath);
         }
 
         private ListView MakeAudioSegmentListView(SerializedProperty audioSegmentsProperty)
@@ -187,8 +231,15 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        audioSegmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);
@@ -202,7 +253,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0) as PropertyField).BindProperty(audioSegmentsProperty.GetArrayElementAtIndex(index));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Segments", 170, 400, audioSegmentsProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 170, 400, audioSegmentsProperty.propertyPath);
         }
 
         private ListView MakeMusicListView(SerializedProperty musicProperty)
@@ -222,8 +273,15 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    musicProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        musicProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);
@@ -237,7 +295,7 @@ namespace Kraymus.AudioManager
                 (element.ElementAt(0) as PropertyField).BindProperty(musicProperty.GetArrayElementAtIndex(index));
             };
 
-            return SetListViewSettings(makeItem, bindItem, "Music", 110, 400, musicProperty.propertyPath);
+            return SetListViewSettings(makeItem, bindItem, "List", 110, 400, musicProperty.propertyPath);
         }
 
 
@@ -276,10 +334,8 @@ namespace Kraymus.AudioManager
             subPageElement.Add(backButton);
 
             TextField nameTextField = new TextField();
+            nameTextField.RegisterValueChangedCallback(SubPageNameChanged);
             subPageElement.Add(nameTextField);
-
-            HelpBox helpBox = new HelpBox("The Audio Group name is used as strings in scripts to play sounds. \nBe careful when you change the name!", HelpBoxMessageType.Warning);
-            subPageElement.Add(helpBox);
 
             PropertyField volumeField = new PropertyField();
             subPageElement.Add(volumeField);
@@ -319,6 +375,13 @@ namespace Kraymus.AudioManager
             return subPageElement;
         }
 
+        private void SubPageNameChanged(ChangeEvent<string> evt)
+        {
+            int count = AudioManager.Instance.GetAudioGroupNames().Where(s => s == evt.newValue).Count();
+            if (count > 1)
+                Debug.LogWarning(evt.newValue + " is a duplicate Audio Group name");
+        }
+
         private ListView MakeAudioGroupSegmentListView()
         {
             Func<VisualElement> makeItem = () =>
@@ -341,10 +404,17 @@ namespace Kraymus.AudioManager
 
                 Button deleteButton = new Button(() =>
                 {
-                    SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
-                    SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
-                    segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
-                    serializedObject.ApplyModifiedProperties();
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("Can't delete in play mode");
+                    }
+                    else
+                    {
+                        SerializedProperty audioGroup = serializedObject.FindProperty("audioGroups").GetArrayElementAtIndex(audioGroupIndex);
+                        SerializedProperty segmentsProperty = audioGroup.FindPropertyRelative("segments");
+                        segmentsProperty.DeleteArrayElementAtIndex((int)element.userData);
+                        serializedObject.ApplyModifiedProperties();
+                    }
                 });
                 deleteButton.text = "Delete";
                 element.Add(deleteButton);

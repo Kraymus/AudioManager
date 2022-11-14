@@ -1,5 +1,7 @@
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Kraymus.AudioManager
@@ -11,11 +13,22 @@ namespace Kraymus.AudioManager
         {
             VisualElement container = new VisualElement();
 
-            container.Add(new PropertyField(property.FindPropertyRelative("name")));
+            TextField nameTextField = new TextField();
+            nameTextField.BindProperty(property.FindPropertyRelative("name"));
+            nameTextField.RegisterValueChangedCallback(NameChanged);
+            container.Add(nameTextField);
+
             container.Add(new PropertyField(property.FindPropertyRelative("audioClip")));
             container.Add(new PropertyField(property.FindPropertyRelative("volume")));
 
             return container;
+        }
+
+        private void NameChanged(ChangeEvent<string> evt)
+        {
+            int count = AudioManager.Instance.GetMusicNames().Where(s => s == evt.newValue).Count();
+            if (count > 1)
+                Debug.LogWarning(evt.newValue + " is a duplicate Music name");
         }
     }
 }
